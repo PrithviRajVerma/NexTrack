@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexTrack — Refined Project Kanban Board</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              200: '#C7D2FE',
+              300: '#A5B4FC',
+              400: '#818CF8',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+              800: '#3730A3',
+              900: '#312E81',
+            },
+            dark: {
+              bg: '#0A0D14',
+              surface: '#111622',
+              card: '#161D2E',
+              cardHover: '#1B2438',
+              columnBg: '#0E131E',
+              border: '#20283E',
+              borderSubtle: '#182033',
+              borderHighlight: '#2E3A5A',
+              text: '#F1F5F9',
+              muted: '#94A3B8',
+              subtle: '#64748B',
+            },
+            light: {
+              bg: '#F8FAFC',
+              surface: '#FFFFFF',
+              card: '#FFFFFF',
+              cardHover: '#F8FAFC',
+              columnBg: '#F1F5F9',
+              border: '#E2E8F0',
+              borderSubtle: '#EDF2F7',
+              borderHighlight: '#CBD5E1',
+              text: '#0F172A',
+              muted: '#475569',
+              subtle: '#94A3B8',
+            }
+          },
+          boxShadow: {
+            'card-dark': '0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3)',
+            'card-dark-hover': '0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)',
+            'card-light': '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+            'card-light-hover': '0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar for crisp horizontal/vertical scrolling */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #232B40;
+      border-radius: 9999px;
+    }
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: #364366;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Subtle card lift and border highlight on hover */
+    .issue-card {
+      transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), 
+                  box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1), 
+                  border-color 0.15s ease,
+                  background-color 0.15s ease;
+    }
+    .issue-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Card drag handle appearance */
+    .drag-handle {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .issue-card:hover .drag-handle {
+      opacity: 0.6;
+    }
+    .drag-handle:hover {
+      opacity: 1 !important;
+    }
+
+    /* Sidebar collapse animation */
+    #appSidebar {
+      transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* GitHub Status Dot Animations */
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+    .status-pulse {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text font-sans antialiased h-screen overflow-hidden flex flex-col selection:bg-brand-500 selection:text-white transition-colors duration-200">
+
+  <!-- ========================================================================= -->
+  <!-- Top Navigation Header (Streamlined, High-Utility)                         -->
+  <!-- ========================================================================= -->
+  <header class="h-13 border-b border-light-border dark:border-dark-border bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30 transition-colors duration-200 py-2">
+    
+    <!-- Left: App Brand & Project Context -->
+    <div class="flex items-center gap-3">
+      <!-- Sidebar Toggle Icon Button -->
+      <button 
+        onclick="toggleSidebar()" 
+        class="p-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" 
+        title="Toggle Sidebar (Shortcut: [ )"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+        </svg>
+      </button>
+
+      <!-- App Logo -->
+      <div class="flex items-center gap-2 pr-3 border-r border-light-border dark:border-dark-border">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-extrabold text-xs shadow-sm shadow-brand-500/30">
+          NX
+        </div>
+        <span class="text-sm font-bold tracking-tight text-light-text dark:text-white hidden sm:inline-block">
+          NexTrack
+        </span>
+      </div>
+
+      <!-- Workspace & Project Selector Dropdown -->
+      <div class="flex items-center gap-1.5 text-xs">
+        <button class="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-dark-card transition-colors font-medium text-light-text dark:text-dark-text border border-transparent hover:border-light-border dark:hover:border-dark-border">
+          <div class="w-4 h-4 rounded bg-purple-500/20 text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center text-[9px]">
+            AC
+          </div>
+          <span class="truncate max-w-[130px] font-semibold">Acme Engineering</span>
+          <svg class="w-3 h-3 text-light-subtle dark:text-dark-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+
+        <span class="text-light-subtle dark:text-dark-subtle">/</span>
+
+        <!-- Active Project Breadcrumb with Monospace Key -->
+        <button class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border hover:border-brand-500 transition-colors">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="font-semibold text-light-text dark:text-white">Core Platform</span>
+          <span class="font-mono text-[10px] text-brand-600 dark:text-brand-400 font-bold bg-brand-500/10 dark:bg-brand-500/20 px-1 py-0.2 rounded">NT</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center: Global Quick Search (⌘K) -->
+    <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
+      <div class="relative w-full">
+        <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-light-subtle dark:text-dark-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input 
+          id="globalSearchInput"
+          type="text" 
+          placeholder="Search issues, PRs, commits (e.g. NT-101 or #42)..." 
+          class="w-full bg-slate-100 dark:bg-dark-card/90 border border-light-border dark:border-dark-border rounded-lg pl-8 pr-12 py-1.5 text-xs text-light-text dark:text-dark-text placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-1.5 focus:ring-brand-500 focus:border-brand-500 transition-all"
+        />
+        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+          <kbd class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-dark-surface border border-light-border dark:border-dark-borderSubtle text-light-muted dark:text-dark-muted font-medium">⌘K</kbd>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: GitHub Sync Health, Fast Actions, Dual Theme Toggle & Profile -->
+    <div class="flex items-center gap-2">
+
+      <!-- Fast Issue Create Button (Primary CTA with 'C' Shortcut) -->
+      <button 
+        onclick="openCreateModal()" 
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs transition-all shadow-sm shadow-brand-500/25 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        title="Create New Issue (Shortcut: C)"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        <span>Create</span>
+        <kbd class="hidden sm:inline-block text-[9px] font-mono px-1 rounded bg-brand-700/60 text-brand-100 ml-1">C</kbd>
+      </button>
+
+      <!-- GitHub App Ingestion Status Badge (Architecture SLA Grounded) -->
+      <div 
+        class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs cursor-pointer hover:border-emerald-500/50 transition-colors" 
+        title="GitHub App Webhook Ingestion: Active (< 30ms latency, HMAC Verified)"
+      >
+        <span class="w-2 h-2 rounded-full bg-emerald-500 status-pulse"></span>
+        <span class="text-[11px] font-medium text-light-muted dark:text-slate-300">GitHub Sync</span>
+        <span class="text-[10px] px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-semibold border border-emerald-500/20">Active</span>
+      </div>
+
+      <div class="h-4 w-px bg-light-border dark:bg-dark-border mx-1 hidden sm:block"></div>
+
+      <!-- Live Dual-Theme Toggle Button (Light / Dark) -->
+      <button 
+        id="themeToggleBtn"
+        onclick="toggleTheme()"
+        class="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-border text-light-text dark:text-dark-text text-xs font-semibold transition-all shadow-sm"
+        title="Toggle Light / Dark Theme (Shortcut: ⌘T)"
+      >
+        <!-- Sun icon (shown in Dark mode) -->
+        <span class="dark:inline hidden text-amber-400">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </span>
+        <!-- Moon icon (shown in Light mode) -->
+        <span class="dark:hidden inline text-indigo-600">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </span>
+        <span id="themeToggleText" class="hidden sm:inline text-[11px]">Theme</span>
+      </button>
+
+      <!-- In-app Notifications Bell -->
+      <button class="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-card text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white transition-colors" title="Notifications">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-500 ring-2 ring-light-surface dark:ring-dark-surface"></span>
+      </button>
+
+      <!-- User Profile Avatar with dropdown trigger -->
+      <div class="flex items-center gap-1.5 pl-1">
+        <button class="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5 focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold">
+            PV
+          </div>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- Main Workspace Body: Sidebar + Board Canvas                              -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Collapsible Sidebar (Dual Mode: Expanded 230px / Icon-Only 60px) -->
+    <aside 
+      id="appSidebar" 
+      class="w-56 border-r border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex flex-col justify-between shrink-0 transition-all duration-200 select-none overflow-hidden"
+    >
+      
+      <!-- Upper Navigation Links -->
+      <div class="p-3 space-y-5 overflow-y-auto overflow-x-hidden">
+        
+        <!-- Active Sprint Context Widget -->
+        <div class="sidebar-text p-2.5 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-bold text-light-text dark:text-white flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+              Sprint 14
+            </span>
+            <span class="text-[10px] font-mono text-light-muted dark:text-dark-muted">10d left</span>
+          </div>
+          <!-- Sprint Progress Bar -->
+          <div class="w-full h-1.5 bg-slate-200 dark:bg-dark-bg rounded-full overflow-hidden mb-1">
+            <div class="h-full bg-brand-500 rounded-full" style="width: 58%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-light-subtle dark:text-dark-subtle font-mono">
+            <span>28 / 48 pts</span>
+            <span>58%</span>
+          </div>
+        </div>
+
+        <!-- Planning & Agile Section -->
+        <div>
+          <div class="sidebar-text px-2 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle">
+            Planning
+          </div>
+          <nav class="space-y-0.5 text-xs font-medium">
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 font-semibold border border-brand-500/20" title="Active Board">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+                <span class="sidebar-text truncate">Active Board</span>
+              </div>
+              <span class="sidebar-text text-[10px] px-1.5 py-0.2 rounded-full bg-brand-500/20 text-brand-700 dark:text-brand-300 font-mono">9</span>
+            </a>
+
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="Backlog">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <span class="sidebar-text truncate">Backlog</span>
+              </div>
+              <span class="sidebar-text text-[10px] text-light-subtle dark:text-dark-subtle font-mono">18</span>
+            </a>
+
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="Roadmap & Releases">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span class="sidebar-text truncate">Roadmap</span>
+              </div>
+            </a>
+          </nav>
+        </div>
+
+        <!-- Development Section (GitHub VCS/CI Hub) -->
+        <div>
+          <div class="sidebar-text px-2 mb-1.5 flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle">
+              Development
+            </span>
+            <span class="text-[9px] px-1 rounded bg-indigo-500/10 text-brand-600 dark:text-brand-400 font-semibold border border-brand-500/20">GitHub App</span>
+          </div>
+          <nav class="space-y-0.5 text-xs font-medium">
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="Connected Repositories">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                <span class="sidebar-text truncate">Repositories</span>
+              </div>
+              <span class="sidebar-text text-[10px] px-1 rounded bg-slate-200 dark:bg-dark-card font-mono text-light-subtle dark:text-dark-subtle">3</span>
+            </a>
+
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="Pull Requests">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+                <span class="sidebar-text truncate">Pull Requests</span>
+              </div>
+              <span class="sidebar-text text-[10px] font-mono px-1 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-semibold">6 Open</span>
+            </a>
+
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="CI/CD Workflow Runs">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="sidebar-text truncate">CI/CD Builds</span>
+              </div>
+              <span class="sidebar-text w-2 h-2 rounded-full bg-emerald-500"></span>
+            </a>
+
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="Deployments">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                <span class="sidebar-text truncate">Deployments</span>
+              </div>
+              <span class="sidebar-text text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-medium">v1.4.2</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- Settings Section -->
+        <div>
+          <div class="sidebar-text px-2 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle">
+            Settings
+          </div>
+          <nav class="space-y-0.5 text-xs font-medium">
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="Team Members">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span class="sidebar-text truncate">Members</span>
+              </div>
+              <span class="sidebar-text text-[10px] font-mono text-light-subtle dark:text-dark-subtle">12</span>
+            </a>
+
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="Project Settings">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="sidebar-text truncate">Settings</span>
+              </div>
+            </a>
+          </nav>
+        </div>
+
+      </div>
+
+      <!-- Footer: Architecture Monolith Spec Badge -->
+      <div class="sidebar-text p-3 border-t border-light-border dark:border-dark-border bg-slate-50 dark:bg-dark-surface/50 text-[11px] text-light-subtle dark:text-dark-subtle">
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            PostgreSQL Modular
+          </span>
+          <span class="font-mono text-[10px]">v1.0</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ======================================================================= -->
+    <!-- Central Content Area: Toolbar + 5-Stage Kanban Board Canvas            -->
+    <!-- ======================================================================= -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/60 dark:bg-dark-bg transition-colors duration-200">
+      
+      <!-- Sub-header Toolbar: View Switchers, Search & Active Filters -->
+      <div class="px-5 py-2.5 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex flex-wrap items-center justify-between gap-3 shrink-0">
+        
+        <!-- Left: View Segmented Toggles & Fast Board Search -->
+        <div class="flex items-center gap-3">
+          <!-- View segmented pill switch -->
+          <div class="flex items-center bg-slate-100 dark:bg-dark-card p-0.5 rounded-lg border border-light-border dark:border-dark-border text-xs font-semibold">
+            <button class="px-2.5 py-1 rounded-md bg-light-surface dark:bg-brand-600 text-light-text dark:text-white shadow-sm transition-all flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+              <span>Board</span>
+            </button>
+            <button class="px-2.5 py-1 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white transition-all flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+              <span>List</span>
+            </button>
+            <button class="px-2.5 py-1 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white transition-all flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <span>Timeline</span>
+            </button>
+          </div>
+
+          <!-- Board Quick Filter Input (Filters Cards Client-Side) -->
+          <div class="relative w-44">
+            <input 
+              id="boardFilterInput"
+              type="text" 
+              placeholder="Filter board..." 
+              oninput="filterBoardCards()"
+              class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg pl-7 pr-3 py-1 text-xs text-light-text dark:text-dark-text placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+            <svg class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-light-subtle dark:text-dark-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+          </div>
+        </div>
+
+        <!-- Right: Assignee Avatars, Quick Filter Buttons & Grouping -->
+        <div class="flex items-center gap-2">
+          
+          <!-- Assignee Filter Avatars -->
+          <div class="flex items-center -space-x-1.5 overflow-hidden pr-1">
+            <button onclick="filterByAssignee('PV', this)" class="assignee-btn w-6 h-6 rounded-full ring-2 ring-light-surface dark:ring-dark-surface bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center hover:z-10 hover:scale-110 transition-transform" title="Filter: Prithvi (PV)">PV</button>
+            <button onclick="filterByAssignee('AC', this)" class="assignee-btn w-6 h-6 rounded-full ring-2 ring-light-surface dark:ring-dark-surface bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center hover:z-10 hover:scale-110 transition-transform" title="Filter: Alice Chen (AC)">AC</button>
+            <button onclick="filterByAssignee('MV', this)" class="assignee-btn w-6 h-6 rounded-full ring-2 ring-light-surface dark:ring-dark-surface bg-purple-600 text-white text-[9px] font-bold flex items-center justify-center hover:z-10 hover:scale-110 transition-transform" title="Filter: Marcus Vance (MV)">MV</button>
+            <button onclick="filterByAssignee('SJ', this)" class="assignee-btn w-6 h-6 rounded-full ring-2 ring-light-surface dark:ring-dark-surface bg-amber-600 text-white text-[9px] font-bold flex items-center justify-center hover:z-10 hover:scale-110 transition-transform" title="Filter: Sarah Jenkins (SJ)">SJ</button>
+          </div>
+
+          <!-- Quick Filter: Only My Issues -->
+          <button 
+            id="filterMyIssuesBtn"
+            onclick="toggleMyIssuesFilter()"
+            class="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-light-muted dark:text-slate-300 hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+          >
+            Only My Issues
+          </button>
+
+          <!-- Quick Filter: Linked to PRs (GitHub Dev Activity) -->
+          <button 
+            id="filterPRsBtn"
+            onclick="togglePRFilter()"
+            class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-light-muted dark:text-slate-300 hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+          >
+            <svg class="w-3.5 h-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+            <span>Linked PRs</span>
+          </button>
+
+          <!-- Reset Filter Button (Shown when filters active) -->
+          <button 
+            id="clearFilterBtn"
+            onclick="clearAllFilters()"
+            class="hidden text-[11px] text-brand-600 dark:text-brand-400 hover:underline px-1 font-medium"
+          >
+            Clear all
+          </button>
+
+          <div class="h-4 w-px bg-light-border dark:bg-dark-border mx-1"></div>
+
+          <!-- Group By Dropdown -->
+          <div class="flex items-center gap-1.5 text-xs text-light-muted dark:text-dark-muted">
+            <span class="hidden xl:inline text-[11px]">Group:</span>
+            <button class="font-semibold text-light-text dark:text-white flex items-center gap-1 bg-slate-100 dark:bg-dark-card px-2 py-1 rounded border border-light-border dark:border-dark-border">
+              <span>Status</span>
+              <svg class="w-3 h-3 text-light-subtle dark:text-dark-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- The 5 Kanban Columns (Bound strictly to Fixed IssueStatus Enum)        -->
+      <!-- BACKLOG -> TO_DO -> IN_PROGRESS -> IN_REVIEW -> DONE                   -->
+      <!-- ===================================================================== -->
+      <div class="flex-1 p-4 md:p-5 overflow-x-auto flex gap-3.5 items-start select-none">
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- COLUMN 1: BACKLOG                                                   -->
+        <!-- ------------------------------------------------------------------- -->
+        <div class="w-72 sm:w-80 shrink-0 bg-light-column dark:bg-dark-columnBg rounded-xl border border-light-border dark:border-dark-border flex flex-col max-h-full transition-colors duration-200">
+          
+          <!-- Column Header -->
+          <div class="p-3 border-b border-light-border dark:border-dark-border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-light-text dark:text-white">Backlog</h2>
+              <span id="count-backlog" class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted font-bold">2</span>
+            </div>
+            <button onclick="toggleQuickAdd('backlog')" class="p-1 rounded text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200 dark:hover:bg-dark-card" title="Add issue to Backlog">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+
+          <!-- Quick Add Input Container (Collapsible) -->
+          <div id="quickadd-backlog" class="hidden p-2 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <input 
+              type="text" 
+              placeholder="What needs to be done? Press Enter" 
+              onkeydown="handleQuickAddKey(event, 'BACKLOG')"
+              class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded px-2.5 py-1 text-xs text-light-text dark:text-dark-text placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          </div>
+
+          <!-- Column Cards Scroll Container -->
+          <div class="p-2 space-y-2.5 overflow-y-auto flex-1">
+            
+            <!-- Issue Card NT-109 -->
+            <div 
+              onclick="openIssueModal('NT-109')" 
+              data-assignee="MV" 
+              data-has-pr="false" 
+              data-title="Configure k6 benchmark harness for issue-to-code traceability load tests"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border border-light-border dark:border-dark-border shadow-card-light dark:shadow-card-dark hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer group"
+            >
+              <!-- Card Header: Type, Key, Drag Grip & Priority -->
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-500" title="Issue Type: Story">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-light-muted dark:text-dark-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">NT-109</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <!-- Low Priority: Down Arrow -->
+                  <span class="text-slate-400 flex items-center" title="Priority: Low">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Title -->
+              <h3 class="text-xs font-semibold text-light-text dark:text-slate-200 leading-snug mb-2 group-hover:text-brand-600 dark:group-hover:text-white transition-colors">
+                Configure k6 benchmark harness for issue-to-code traceability load tests
+              </h3>
+
+              <!-- Meta Footer -->
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted font-medium border border-light-border dark:border-dark-border">
+                    perf
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">3 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full bg-purple-600 text-white text-[9px] font-bold flex items-center justify-center ring-1 ring-light-border dark:ring-dark-border" title="Assigned to Marcus Vance">
+                  MV
+                </div>
+              </div>
+            </div>
+
+            <!-- Issue Card NT-112 -->
+            <div 
+              onclick="openIssueModal('NT-112')" 
+              data-assignee="UNASSIGNED" 
+              data-has-pr="false" 
+              data-title="Support Bitbucket & GitLab Webhook payload normalizers via Provider SPI port"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border border-light-border dark:border-dark-border shadow-card-light dark:shadow-card-dark hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer group"
+            >
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-blue-500" title="Issue Type: Task">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-light-muted dark:text-dark-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">NT-112</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <!-- Medium Priority: Equal Bar -->
+                  <span class="text-amber-500 flex items-center" title="Priority: Medium">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+
+              <h3 class="text-xs font-semibold text-light-text dark:text-slate-200 leading-snug mb-2 group-hover:text-brand-600 dark:group-hover:text-white transition-colors">
+                Support Bitbucket & GitLab Webhook payload normalizers via Provider SPI port
+              </h3>
+
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium border border-indigo-500/20">
+                    spi-port
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">5 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full border border-dashed border-light-subtle dark:border-dark-subtle text-[9px] text-light-subtle dark:text-dark-subtle flex items-center justify-center font-bold" title="Unassigned">
+                  ?
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Column Quick Add Footer -->
+          <div class="p-2 border-t border-light-border dark:border-dark-border">
+            <button onclick="toggleQuickAdd('backlog')" class="w-full py-1.5 px-2 text-xs font-medium text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-dark-card rounded-md flex items-center justify-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Add issue</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- COLUMN 2: TO DO                                                     -->
+        <!-- ------------------------------------------------------------------- -->
+        <div class="w-72 sm:w-80 shrink-0 bg-light-column dark:bg-dark-columnBg rounded-xl border border-light-border dark:border-dark-border flex flex-col max-h-full transition-colors duration-200">
+          
+          <div class="p-3 border-b border-light-border dark:border-dark-border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-light-text dark:text-white">To Do</h2>
+              <span id="count-todo" class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted font-bold">2</span>
+            </div>
+            <button onclick="toggleQuickAdd('todo')" class="p-1 rounded text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200 dark:hover:bg-dark-card">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+
+          <div id="quickadd-todo" class="hidden p-2 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <input 
+              type="text" 
+              placeholder="What needs to be done? Press Enter" 
+              onkeydown="handleQuickAddKey(event, 'TO_DO')"
+              class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded px-2.5 py-1 text-xs text-light-text dark:text-dark-text placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          </div>
+
+          <div class="p-2 space-y-2.5 overflow-y-auto flex-1">
+            
+            <!-- Issue Card NT-104 -->
+            <div 
+              onclick="openIssueModal('NT-104')" 
+              data-assignee="PV" 
+              data-has-pr="false" 
+              data-title="Implement project-key uniqueness constraint UNIQUE(workspace_id, project_key)"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border border-light-border dark:border-dark-border shadow-card-light dark:shadow-card-dark hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer group"
+            >
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-500" title="Issue Type: Story">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-light-muted dark:text-dark-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">NT-104</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <!-- High Priority: Up Arrow -->
+                  <span class="text-orange-500 flex items-center font-bold" title="Priority: High">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+
+              <h3 class="text-xs font-semibold text-light-text dark:text-slate-200 leading-snug mb-2 group-hover:text-brand-600 dark:group-hover:text-white transition-colors">
+                Implement project-key uniqueness constraint UNIQUE(workspace_id, project_key)
+              </h3>
+              
+              <!-- Standardized GitHub Dev Indicator: Branch Pill -->
+              <div class="mb-2 flex items-center gap-1.5">
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-dark-surface border border-light-border dark:border-dark-border text-[10px] font-mono text-purple-600 dark:text-purple-400" title="Connected Git Branch">
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                  feat/NT-104-proj-key
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted font-medium border border-light-border dark:border-dark-border">
+                    db
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">2 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center ring-1 ring-light-border dark:ring-dark-border" title="Assigned to Prithvi (You)">
+                  PV
+                </div>
+              </div>
+            </div>
+
+            <!-- Issue Card NT-107 -->
+            <div 
+              onclick="openIssueModal('NT-107')" 
+              data-assignee="AC" 
+              data-has-pr="false" 
+              data-title="Enforce streaming max body size limit (2MB) before buffer allocation"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border border-light-border dark:border-dark-border shadow-card-light dark:shadow-card-dark hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer group"
+            >
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-rose-500" title="Issue Type: Bug">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-light-muted dark:text-dark-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">NT-107</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-amber-500 flex items-center" title="Priority: Medium">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+
+              <h3 class="text-xs font-semibold text-light-text dark:text-slate-200 leading-snug mb-2 group-hover:text-brand-600 dark:group-hover:text-white transition-colors">
+                Enforce streaming max body size limit (2MB) before buffer allocation
+              </h3>
+
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-medium border border-rose-500/20">
+                    security
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">3 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center ring-1 ring-light-border dark:ring-dark-border" title="Assigned to Alice Chen">
+                  AC
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="p-2 border-t border-light-border dark:border-dark-border">
+            <button onclick="toggleQuickAdd('todo')" class="w-full py-1.5 px-2 text-xs font-medium text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-dark-card rounded-md flex items-center justify-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Add issue</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- COLUMN 3: IN PROGRESS (High Activity Column)                        -->
+        <!-- ------------------------------------------------------------------- -->
+        <div class="w-72 sm:w-80 shrink-0 bg-light-column dark:bg-dark-columnBg rounded-xl border border-light-border dark:border-dark-border flex flex-col max-h-full transition-colors duration-200">
+          
+          <div class="p-3 border-b border-light-border dark:border-dark-border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500 status-pulse"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-light-text dark:text-white">In Progress</h2>
+              <span id="count-inprogress" class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted font-bold">2</span>
+            </div>
+            <button onclick="toggleQuickAdd('inprogress')" class="p-1 rounded text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200 dark:hover:bg-dark-card">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+
+          <div id="quickadd-inprogress" class="hidden p-2 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <input 
+              type="text" 
+              placeholder="What needs to be done? Press Enter" 
+              onkeydown="handleQuickAddKey(event, 'IN_PROGRESS')"
+              class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded px-2.5 py-1 text-xs text-light-text dark:text-dark-text placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          </div>
+
+          <div class="p-2 space-y-2.5 overflow-y-auto flex-1">
+            
+            <!-- Issue Card NT-101 (Refined GitHub Development Micro-Bar) -->
+            <div 
+              onclick="openIssueModal('NT-101')" 
+              data-assignee="PV" 
+              data-has-pr="true" 
+              data-title="GitHub Webhook Inbox 2-phase worker with lease ownership token verification"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border-2 border-brand-500/70 dark:border-brand-500/70 shadow-card-light-hover dark:shadow-card-dark-hover cursor-pointer group"
+            >
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-500" title="Issue Type: Story">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-brand-600 dark:text-brand-400">NT-101</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold border border-brand-500/20">Sprint Priority</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <!-- Urgent Priority: Double Red Chevron -->
+                  <span class="text-rose-600 dark:text-rose-400 flex items-center font-bold" title="Priority: Urgent">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 11l7-7 7 7M5 19l7-7 7 7"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+              
+              <h3 class="text-xs font-bold text-light-text dark:text-white leading-snug mb-2">
+                GitHub Webhook Inbox 2-phase worker with lease ownership token verification
+              </h3>
+
+              <!-- Streamlined GitHub Development Micro-Bar (Unified, High-Density) -->
+              <div class="p-1.5 rounded-md bg-slate-100/80 dark:bg-dark-surface/90 border border-light-border dark:border-dark-border mb-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+                <!-- PR Pill -->
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-300 font-mono font-medium border border-purple-500/20" title="Pull Request #42: Open">
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+                  #42 Open
+                </span>
+
+                <!-- CI Build Pill -->
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-medium border border-emerald-500/20" title="CI Build #184: Succeeded">
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  Build #184
+                </span>
+
+                <!-- Commits Pill -->
+                <span class="inline-flex items-center gap-1 px-1 py-0.5 text-light-muted dark:text-dark-muted font-mono" title="3 Commits pushed">
+                  3 commits
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 font-medium border border-brand-500/20">
+                    inbox-worker
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">8 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-brand-500" title="Assigned to Prithvi (You)">
+                  PV
+                </div>
+              </div>
+            </div>
+
+            <!-- Issue Card NT-106 -->
+            <div 
+              onclick="openIssueModal('NT-106')" 
+              data-assignee="AC" 
+              data-has-pr="false" 
+              data-title="Atomic counter increment shared transaction rollback test suite"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border border-light-border dark:border-dark-border shadow-card-light dark:shadow-card-dark hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer group"
+            >
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-blue-500" title="Issue Type: Task">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-light-muted dark:text-dark-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">NT-106</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-orange-500 flex items-center font-bold" title="Priority: High">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+              <h3 class="text-xs font-semibold text-light-text dark:text-slate-200 leading-snug mb-2 group-hover:text-brand-600 dark:group-hover:text-white transition-colors">
+                Atomic counter increment shared transaction rollback test suite
+              </h3>
+              
+              <!-- Linked Branch Badge -->
+              <div class="mb-2">
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-dark-surface border border-light-border dark:border-dark-border text-[10px] font-mono text-purple-600 dark:text-purple-400">
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                  fix/NT-106-rollback
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted font-medium border border-light-border dark:border-dark-border">
+                    concurrency
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">5 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center ring-1 ring-light-border dark:ring-dark-border" title="Assigned to Alice Chen">
+                  AC
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="p-2 border-t border-light-border dark:border-dark-border">
+            <button onclick="toggleQuickAdd('inprogress')" class="w-full py-1.5 px-2 text-xs font-medium text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-dark-card rounded-md flex items-center justify-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Add issue</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- COLUMN 4: IN REVIEW                                                 -->
+        <!-- ------------------------------------------------------------------- -->
+        <div class="w-72 sm:w-80 shrink-0 bg-light-column dark:bg-dark-columnBg rounded-xl border border-light-border dark:border-dark-border flex flex-col max-h-full transition-colors duration-200">
+          
+          <div class="p-3 border-b border-light-border dark:border-dark-border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-light-text dark:text-white">In Review</h2>
+              <span id="count-inreview" class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted font-bold">1</span>
+            </div>
+            <button onclick="toggleQuickAdd('inreview')" class="p-1 rounded text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200 dark:hover:bg-dark-card">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+
+          <div id="quickadd-inreview" class="hidden p-2 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <input 
+              type="text" 
+              placeholder="What needs to be done? Press Enter" 
+              onkeydown="handleQuickAddKey(event, 'IN_REVIEW')"
+              class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded px-2.5 py-1 text-xs text-light-text dark:text-dark-text placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          </div>
+
+          <div class="p-2 space-y-2.5 overflow-y-auto flex-1">
+            
+            <!-- Issue Card NT-103 -->
+            <div 
+              onclick="openIssueModal('NT-103')" 
+              data-assignee="SJ" 
+              data-has-pr="true" 
+              data-title="Spring Security permitAll & CSRF ignore filter rule for external GitHub webhooks"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border border-light-border dark:border-dark-border shadow-card-light dark:shadow-card-dark hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer group"
+            >
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-500" title="Issue Type: Story">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-light-muted dark:text-dark-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">NT-103</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-orange-500 flex items-center font-bold" title="Priority: High">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+
+              <h3 class="text-xs font-semibold text-light-text dark:text-slate-200 leading-snug mb-2 group-hover:text-brand-600 dark:group-hover:text-white transition-colors">
+                Spring Security permitAll & CSRF ignore filter rule for external GitHub webhooks
+              </h3>
+
+              <!-- Dev Pill: PR In Review with Approved Badge -->
+              <div class="p-1.5 rounded-md bg-slate-100/80 dark:bg-dark-surface/90 border border-light-border dark:border-dark-border mb-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-300 font-mono text-[10px] font-medium border border-purple-500/20" title="Pull Request #41">
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+                  #41 Review
+                </span>
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[10px]">
+                  ✓ 1 Approved
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 font-medium border border-purple-500/20">
+                    spring-sec
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">3 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full bg-amber-600 text-white text-[9px] font-bold flex items-center justify-center ring-1 ring-light-border dark:ring-dark-border" title="Assigned to Sarah Jenkins">
+                  SJ
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="p-2 border-t border-light-border dark:border-dark-border">
+            <button onclick="toggleQuickAdd('inreview')" class="w-full py-1.5 px-2 text-xs font-medium text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-dark-card rounded-md flex items-center justify-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Add issue</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------------- -->
+        <!-- COLUMN 5: DONE                                                      -->
+        <!-- ------------------------------------------------------------------- -->
+        <div class="w-72 sm:w-80 shrink-0 bg-light-column dark:bg-dark-columnBg rounded-xl border border-light-border dark:border-dark-border flex flex-col max-h-full transition-colors duration-200">
+          
+          <div class="p-3 border-b border-light-border dark:border-dark-border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-light-text dark:text-white">Done</h2>
+              <span id="count-done" class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted font-bold">2</span>
+            </div>
+            <button onclick="toggleQuickAdd('done')" class="p-1 rounded text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200 dark:hover:bg-dark-card">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+
+          <div id="quickadd-done" class="hidden p-2 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <input 
+              type="text" 
+              placeholder="What needs to be done? Press Enter" 
+              onkeydown="handleQuickAddKey(event, 'DONE')"
+              class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded px-2.5 py-1 text-xs text-light-text dark:text-dark-text placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          </div>
+
+          <div class="p-2 space-y-2.5 overflow-y-auto flex-1">
+            
+            <!-- Issue Card NT-98 -->
+            <div 
+              onclick="openIssueModal('NT-98')" 
+              data-assignee="PV" 
+              data-has-pr="true" 
+              data-title="Flyway migration V8: add composite uq_webhook_provider_delivery constraint"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border border-light-border dark:border-dark-border shadow-card-light dark:shadow-card-dark hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer group opacity-90 hover:opacity-100"
+            >
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-500">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-light-muted dark:text-dark-muted line-through group-hover:text-brand-600 dark:group-hover:text-brand-400">NT-98</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-emerald-500 font-bold" title="Status: Completed">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+
+              <h3 class="text-xs font-semibold text-light-muted dark:text-slate-400 line-through leading-snug mb-2">
+                Flyway migration V8: add composite uq_webhook_provider_delivery constraint
+              </h3>
+
+              <!-- Dev Pill: PR Merged & Deployed to Prod -->
+              <div class="p-1.5 rounded-md bg-slate-100/80 dark:bg-dark-surface/90 border border-light-border dark:border-dark-border mb-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[10px] font-medium border border-emerald-500/20" title="Pull Request #39 Merged">
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  #39 Merged
+                </span>
+                <span class="text-[10px] text-blue-600 dark:text-blue-400 font-mono font-medium flex items-center gap-0.5">
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                  Prod v1.4.2
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted font-medium border border-light-border dark:border-dark-border">
+                    flyway
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">2 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center ring-1 ring-light-border dark:ring-dark-border">
+                  PV
+                </div>
+              </div>
+            </div>
+
+            <!-- Issue Card NT-95 -->
+            <div 
+              onclick="openIssueModal('NT-95')" 
+              data-assignee="AC" 
+              data-has-pr="false" 
+              data-title="Replace PAT auth with GitHub App installation JWT tokens and in-memory cache"
+              class="issue-card bg-light-card dark:bg-dark-card p-3 rounded-lg border border-light-border dark:border-dark-border shadow-card-light dark:shadow-card-dark hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer group opacity-90 hover:opacity-100"
+            >
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-blue-500">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  </span>
+                  <span class="font-mono font-bold text-light-muted dark:text-dark-muted line-through group-hover:text-brand-600 dark:group-hover:text-brand-400">NT-95</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-emerald-500 font-bold">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  </span>
+                  <span class="drag-handle text-light-subtle dark:text-dark-subtle cursor-grab">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM15 4a2 2 0 11-4 0 2 2 0 014 0zM15 10a2 2 0 11-4 0 2 2 0 014 0zM15 16a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  </span>
+                </div>
+              </div>
+
+              <h3 class="text-xs font-semibold text-light-muted dark:text-slate-400 line-through leading-snug mb-2">
+                Replace PAT auth with GitHub App installation JWT tokens and in-memory cache
+              </h3>
+
+              <div class="flex items-center justify-between pt-2 border-t border-light-border/70 dark:border-dark-border/70 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted font-medium border border-light-border dark:border-dark-border">
+                    auth
+                  </span>
+                  <span class="font-mono px-1 rounded bg-slate-100 dark:bg-dark-surface text-light-muted dark:text-dark-muted">5 pts</span>
+                </div>
+                <div class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center ring-1 ring-light-border dark:ring-dark-border">
+                  AC
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="p-2 border-t border-light-border dark:border-dark-border">
+            <button onclick="toggleQuickAdd('done')" class="w-full py-1.5 px-2 text-xs font-medium text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-dark-card rounded-md flex items-center justify-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Add issue</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- Interactive Modal: Issue Details & GitHub Traceability                    -->
+  <!-- ========================================================================= -->
+  <div id="issueModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="w-full max-w-3xl bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors duration-200 animate-in fade-in zoom-in-95">
+      
+      <!-- Modal Top Bar -->
+      <div class="px-5 py-3 border-b border-light-border dark:border-dark-border flex items-center justify-between bg-slate-50 dark:bg-dark-card/50">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-500">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg>
+          </span>
+          <span id="modalIssueKey" class="font-mono font-bold text-xs text-brand-600 dark:text-brand-400">NT-101</span>
+          <span class="text-light-subtle dark:text-dark-subtle">•</span>
+          <span id="modalIssueProject" class="text-xs text-light-muted dark:text-dark-muted font-medium">Core Platform</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="copyIssueLink()" class="p-1 rounded text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white" title="Copy Issue URL">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          </button>
+          <button onclick="closeIssueModal()" class="p-1 rounded text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white" title="Close (ESC)">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Two-Column Layout: Main Content + Metadata Side Panel) -->
+      <div class="flex-1 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Left 2 Cols: Title, Description & GitHub Dev Hub -->
+        <div class="md:col-span-2 space-y-5">
+          <h2 id="modalIssueTitle" class="text-base font-bold text-light-text dark:text-white leading-snug">
+            GitHub Webhook Inbox 2-phase worker with lease ownership token verification
+          </h2>
+
+          <!-- Description Section -->
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle mb-1.5">Description</h4>
+            <div class="text-xs text-light-muted dark:text-slate-300 space-y-2 bg-slate-50 dark:bg-dark-card/40 p-3 rounded-lg border border-light-border dark:border-dark-border">
+              <p>Process pending events from the <code class="font-mono text-[11px] bg-slate-200 dark:bg-dark-surface px-1 py-0.5 rounded text-brand-600 dark:text-brand-400">webhook_inbox_events</code> table using a concurrent-safe lease token ownership protocol.</p>
+              <ul class="list-disc pl-4 space-y-1">
+                <li>Phase 1: Claim batch using <code class="font-mono text-[11px]">FOR UPDATE SKIP LOCKED</code> with expiration lease.</li>
+                <li>Phase 2: Dispatch normalized domain events and mark status <code class="font-mono text-[11px]">PROCESSED</code> within separate transaction.</li>
+                <li>Ensure idempotency via composite unique constraint <code class="font-mono text-[11px]">uq_webhook_provider_delivery</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Jira-Grade GitHub Development Traceability Box -->
+          <div class="border border-brand-500/30 rounded-lg p-3 bg-brand-500/5 dark:bg-dark-card/60">
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="text-xs font-bold text-light-text dark:text-white flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L2.414 10l3.293 3.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L17.586 10l-3.293-3.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                GitHub Development Traceability
+              </span>
+              <span class="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                Auto-Linked
+              </span>
+            </div>
+
+            <!-- Traceability Items List -->
+            <div class="space-y-2 text-xs">
+              <!-- PR Row -->
+              <div class="flex items-center justify-between p-2 rounded bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+                  <span class="font-mono text-[11px] font-semibold text-light-text dark:text-white">#42: feat(inbox): 2-phase worker</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-mono font-bold">OPEN</span>
+                  <span class="text-[10px] text-light-muted dark:text-dark-muted font-mono">1 approval</span>
+                </div>
+              </div>
+
+              <!-- Branch Row -->
+              <div class="flex items-center justify-between p-2 rounded bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                  <span class="font-mono text-[11px] text-light-text dark:text-white">feat/NT-101-inbox-worker</span>
+                </div>
+                <span class="text-[10px] text-light-muted dark:text-dark-muted font-mono">3 commits</span>
+              </div>
+
+              <!-- CI/CD Build Row -->
+              <div class="flex items-center justify-between p-2 rounded bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  <span class="font-mono text-[11px] text-light-text dark:text-white">GitHub Actions: Test & Verify</span>
+                </div>
+                <span class="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">Build #184 Passed (42s)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 1 Col: Metadata Sidebar (Status, Priority, Assignee, Estimate) -->
+        <div class="space-y-4 border-l border-light-border dark:border-dark-border pl-6">
+          
+          <!-- Status Dropdown (Fixed IssueStatus Enum) -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle mb-1">Status</label>
+            <select id="modalStatusSelect" class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-2.5 py-1.5 text-xs text-light-text dark:text-white font-medium focus:ring-1 focus:ring-brand-500 focus:outline-none">
+              <option value="BACKLOG">Backlog</option>
+              <option value="TO_DO">To Do</option>
+              <option value="IN_PROGRESS" selected>In Progress</option>
+              <option value="IN_REVIEW">In Review</option>
+              <option value="DONE">Done</option>
+            </select>
+          </div>
+
+          <!-- Priority -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle mb-1">Priority</label>
+            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs">
+              <span class="text-rose-500">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 11l7-7 7 7M5 19l7-7 7 7"/></svg>
+              </span>
+              <span class="font-semibold text-light-text dark:text-white">Urgent</span>
+            </div>
+          </div>
+
+          <!-- Assignee -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle mb-1">Assignee</label>
+            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs">
+              <div class="w-5 h-5 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center">
+                PV
+              </div>
+              <span class="font-medium text-light-text dark:text-white">Prithvi Verma (You)</span>
+            </div>
+          </div>
+
+          <!-- Story Points -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle mb-1">Story Points</label>
+            <div class="font-mono text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-light-text dark:text-white font-bold">
+              8 Points
+            </div>
+          </div>
+
+          <!-- Component / Tags -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle mb-1">Labels</label>
+            <div class="flex flex-wrap gap-1">
+              <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">inbox-worker</span>
+              <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted">backend</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3 border-t border-light-border dark:border-dark-border bg-slate-50 dark:bg-dark-card/50 flex justify-end gap-2">
+        <button onclick="closeIssueModal()" class="px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border text-xs font-semibold text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white transition-colors">
+          Close
+        </button>
+        <button onclick="saveIssueStatus()" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-sm transition-all">
+          Save Changes
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- Fast Issue Creation Modal ('C' Shortcut)                                  -->
+  <!-- ========================================================================= -->
+  <div id="createModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="w-full max-w-lg bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border shadow-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
+        <h3 class="text-sm font-bold text-light-text dark:text-white flex items-center gap-2">
+          <span>Create New Issue</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400">NT-113</span>
+        </h3>
+        <button onclick="closeCreateModal()" class="text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-light-subtle dark:text-dark-subtle mb-1">Issue Title</label>
+          <input 
+            id="newIssueTitleInput"
+            type="text" 
+            placeholder="e.g. Implement webhook inbox lease renewal heartbeats" 
+            class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-3 py-2 text-xs text-light-text dark:text-white placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-light-subtle dark:text-dark-subtle mb-1">Initial Status</label>
+            <select id="newIssueStatusSelect" class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-2.5 py-1.5 text-xs text-light-text dark:text-white">
+              <option value="BACKLOG">Backlog</option>
+              <option value="TO_DO" selected>To Do</option>
+              <option value="IN_PROGRESS">In Progress</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-light-subtle dark:text-dark-subtle mb-1">Priority</label>
+            <select id="newIssuePrioritySelect" class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-2.5 py-1.5 text-xs text-light-text dark:text-white">
+              <option value="URGENT">Urgent</option>
+              <option value="HIGH" selected>High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-light-border dark:border-dark-border">
+        <button onclick="closeCreateModal()" class="px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border text-xs font-semibold text-light-muted dark:text-dark-muted">Cancel</button>
+        <button onclick="submitNewIssue()" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-sm">Create Issue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- Client-Side State, Theme Engine & Keyboard Shortcuts                       -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. Dual-Theme Engine (Light / Dark)
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.contains('dark');
+      if (isDark) {
+        html.classList.remove('dark');
+        localStorage.setItem('nextrack-theme', 'light');
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('nextrack-theme', 'dark');
+      }
+    }
+
+    // 2. Sidebar Collapse Toggle (Expanded <-> Compact)
+    let sidebarCollapsed = false;
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      const textElements = sidebar.querySelectorAll('.sidebar-text');
+      sidebarCollapsed = !sidebarCollapsed;
+
+      if (sidebarCollapsed) {
+        sidebar.style.width = '60px';
+        textElements.forEach(el => el.classList.add('hidden'));
+      } else {
+        sidebar.style.width = '224px'; // 56 * 4px = 224px (w-56)
+        textElements.forEach(el => el.classList.remove('hidden'));
+      }
+    }
+
+    // 3. Interactive Filtering Engine
+    let activeAssignee = null;
+    let onlyMyIssuesActive = false;
+    let prFilterActive = false;
+
+    function applyCardFilters() {
+      const query = (document.getElementById('boardFilterInput').value || '').toLowerCase().trim();
+      const cards = document.querySelectorAll('.issue-card');
+      let visibleCounts = { backlog: 0, todo: 0, inprogress: 0, inreview: 0, done: 0 };
+      let anyFilterActive = Boolean(query || activeAssignee || onlyMyIssuesActive || prFilterActive);
+
+      document.getElementById('clearFilterBtn').classList.toggle('hidden', !anyFilterActive);
+
+      cards.forEach(card => {
+        const title = (card.getAttribute('data-title') || '').toLowerCase();
+        const assignee = card.getAttribute('data-assignee');
+        const hasPr = card.getAttribute('data-has-pr') === 'true';
+
+        let matchesSearch = !query || title.includes(query);
+        let matchesAssignee = !activeAssignee || assignee === activeAssignee;
+        let matchesMyIssues = !onlyMyIssuesActive || assignee === 'PV';
+        let matchesPR = !prFilterActive || hasPr;
+
+        const isVisible = matchesSearch && matchesAssignee && matchesMyIssues && matchesPR;
+        card.style.display = isVisible ? 'block' : 'none';
+
+        if (isVisible) {
+          const colId = card.closest('[id^="count-"]')?.id || '';
+          // Identify column
+          if (card.closest('.issue-card')?.parentElement?.previousElementSibling?.previousElementSibling?.querySelector('h2')) {
+            // standard col counting
+          }
+        }
+      });
+    }
+
+    function filterBoardCards() {
+      applyCardFilters();
+    }
+
+    function filterByAssignee(initials, btn) {
+      if (activeAssignee === initials) {
+        activeAssignee = null;
+        btn.classList.remove('ring-4', 'ring-brand-500');
+      } else {
+        document.querySelectorAll('.assignee-btn').forEach(b => b.classList.remove('ring-4', 'ring-brand-500'));
+        activeAssignee = initials;
+        btn.classList.add('ring-4', 'ring-brand-500');
+      }
+      applyCardFilters();
+    }
+
+    function toggleMyIssuesFilter() {
+      onlyMyIssuesActive = !onlyMyIssuesActive;
+      const btn = document.getElementById('filterMyIssuesBtn');
+      if (onlyMyIssuesActive) {
+        btn.classList.add('bg-brand-500/20', 'border-brand-500', 'text-brand-600', 'dark:text-brand-400');
+      } else {
+        btn.classList.remove('bg-brand-500/20', 'border-brand-500', 'text-brand-600', 'dark:text-brand-400');
+      }
+      applyCardFilters();
+    }
+
+    function togglePRFilter() {
+      prFilterActive = !prFilterActive;
+      const btn = document.getElementById('filterPRsBtn');
+      if (prFilterActive) {
+        btn.classList.add('bg-purple-500/20', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400');
+      } else {
+        btn.classList.remove('bg-purple-500/20', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400');
+      }
+      applyCardFilters();
+    }
+
+    function clearAllFilters() {
+      activeAssignee = null;
+      onlyMyIssuesActive = false;
+      prFilterActive = false;
+      document.getElementById('boardFilterInput').value = '';
+      document.querySelectorAll('.assignee-btn').forEach(b => b.classList.remove('ring-4', 'ring-brand-500'));
+      document.getElementById('filterMyIssuesBtn').classList.remove('bg-brand-500/20', 'border-brand-500', 'text-brand-600', 'dark:text-brand-400');
+      document.getElementById('filterPRsBtn').classList.remove('bg-purple-500/20', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400');
+      applyCardFilters();
+    }
+
+    // 4. Quick Add Issue Toggles
+    function toggleQuickAdd(columnKey) {
+      const container = document.getElementById(`quickadd-${columnKey}`);
+      if (container) {
+        container.classList.toggle('hidden');
+        if (!container.classList.contains('hidden')) {
+          container.querySelector('input')?.focus();
+        }
+      }
+    }
+
+    function handleQuickAddKey(event, statusKey) {
+      if (event.key === 'Enter') {
+        const val = event.target.value.trim();
+        if (val) {
+          alert(`Created new issue in ${statusKey}: "${val}" (Prototype Mock)`);
+          event.target.value = '';
+          event.target.parentElement.classList.add('hidden');
+        }
+      } else if (event.key === 'Escape') {
+        event.target.parentElement.classList.add('hidden');
+      }
+    }
+
+    // 5. Issue Detail Modal
+    function openIssueModal(issueKey) {
+      document.getElementById('modalIssueKey').innerText = issueKey;
+      document.getElementById('issueModal').classList.remove('hidden');
+    }
+
+    function closeIssueModal() {
+      document.getElementById('issueModal').classList.add('hidden');
+    }
+
+    function saveIssueStatus() {
+      const newStatus = document.getElementById('modalStatusSelect').value;
+      const key = document.getElementById('modalIssueKey').innerText;
+      closeIssueModal();
+    }
+
+    function copyIssueLink() {
+      const key = document.getElementById('modalIssueKey').innerText;
+      navigator.clipboard?.writeText(window.location.origin + '#' + key);
+      alert(`Copied link for ${key} to clipboard!`);
+    }
+
+    // 6. Fast Create Modal (C Key)
+    function openCreateModal() {
+      document.getElementById('createModal').classList.remove('hidden');
+      document.getElementById('newIssueTitleInput').focus();
+    }
+
+    function closeCreateModal() {
+      document.getElementById('createModal').classList.add('hidden');
+    }
+
+    function submitNewIssue() {
+      const title = document.getElementById('newIssueTitleInput').value.trim();
+      if (!title) {
+        alert('Please enter an issue title.');
+        return;
+      }
+      alert(`Issue created successfully: "${title}" (Prototype Mock)`);
+      document.getElementById('newIssueTitleInput').value = '';
+      closeCreateModal();
+    }
+
+    // 7. Global Keyboard Shortcuts: ⌘T, ⌘K, C, [ and ESC
+    window.addEventListener('keydown', (e) => {
+      // Don't trigger shortcuts if typing inside an input or textarea
+      const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        toggleTheme();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        document.getElementById('globalSearchInput')?.focus();
+      } else if (e.key === 'Escape') {
+        closeIssueModal();
+        closeCreateModal();
+      } else if (e.key === 'c' && !isInput && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        openCreateModal();
+      } else if (e.key === '[' && !isInput) {
+        e.preventDefault();
+        toggleSidebar();
+      }
+    });
+
+    // 8. Restore Saved Preferences on Load
+    (function init() {
+      const savedTheme = localStorage.getItem('nextrack-theme');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>
