@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexTrack — Backlog & Sprint Planning (Screen 3)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#EEF2FF', 100: '#E0E7FF', 200: '#C7D2FE', 300: '#A5B4FC',
+              400: '#818CF8', 500: '#6366F1', 600: '#4F46E5', 700: '#4338CA',
+              800: '#3730A3', 900: '#312E81',
+            },
+            dark: {
+              bg: '#0A0D14', surface: '#111622', card: '#161D2E', cardHover: '#1B2438',
+              columnBg: '#0E131E', border: '#20283E', borderSubtle: '#182033',
+              borderHighlight: '#2E3A5A', text: '#F1F5F9', muted: '#94A3B8', subtle: '#64748B',
+            },
+            light: {
+              bg: '#F8FAFC', surface: '#FFFFFF', card: '#FFFFFF', cardHover: '#F8FAFC',
+              columnBg: '#F1F5F9', border: '#E2E8F0', borderSubtle: '#EDF2F7',
+              borderHighlight: '#CBD5E1', text: '#0F172A', muted: '#475569', subtle: '#94A3B8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #232B40; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    #appSidebar { transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text font-sans antialiased h-screen overflow-hidden flex flex-col selection:bg-brand-500 selection:text-white transition-colors duration-200">
+
+  <!-- Top Navigation Header -->
+  <header class="h-13 border-b border-light-border dark:border-dark-border bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30 transition-colors duration-200 py-2">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebar()" class="p-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+      </button>
+      <div class="flex items-center gap-2 pr-3 border-r border-light-border dark:border-dark-border">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-extrabold text-xs shadow-sm shadow-brand-500/30">NX</div>
+        <span class="text-sm font-bold tracking-tight text-light-text dark:text-white hidden sm:inline-block">NexTrack</span>
+      </div>
+      <div class="flex items-center gap-1.5 text-xs">
+        <span class="font-semibold text-light-muted dark:text-dark-muted">Acme</span>
+        <span class="text-light-subtle dark:text-dark-subtle">/</span>
+        <span class="font-semibold text-light-text dark:text-white">Core Platform</span>
+        <span class="text-light-subtle dark:text-dark-subtle">/</span>
+        <span class="font-semibold text-brand-600 dark:text-brand-400">Backlog & Sprints</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="alert('Create Sprint dialog triggered')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs transition-all shadow-sm">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <span>Create Sprint</span>
+      </button>
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="p-1.5 rounded-lg border border-light-border dark:border-dark-border bg-slate-100 dark:bg-dark-card text-xs font-semibold">
+        <span class="dark:inline hidden text-amber-400"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></span>
+        <span class="dark:hidden inline text-indigo-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Body Layout -->
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Sidebar -->
+    <aside id="appSidebar" class="w-56 border-r border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex flex-col justify-between shrink-0 transition-all duration-200 select-none overflow-hidden">
+      <div class="p-3 space-y-5 overflow-y-auto">
+        <nav class="space-y-0.5 text-xs font-medium">
+          <a href="nextrack_ui_refined.html" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+            <span class="sidebar-text">Active Board</span>
+          </a>
+          <a href="03_backlog_planning.html" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 font-semibold border border-brand-500/20">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+            <span class="sidebar-text">Backlog</span>
+          </a>
+          <a href="04_development_hub.html" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors">
+            <svg class="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+            <span class="sidebar-text">Development</span>
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Backlog & Sprint Workspace -->
+    <main class="flex-1 overflow-y-auto bg-slate-50/60 dark:bg-dark-bg p-6 lg:p-8 space-y-6">
+      
+      <!-- Toolbar & Velocity Metrics -->
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-light-surface dark:bg-dark-surface p-4 rounded-xl border border-light-border dark:border-dark-border">
+        <div>
+          <h1 class="text-lg font-bold text-light-text dark:text-white">Sprint Planning & Backlog</h1>
+          <p class="text-xs text-light-muted dark:text-dark-muted">Drag or prioritize issues into upcoming sprints. Velocity calibrated to 45 pts.</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border">
+            <span class="text-light-subtle dark:text-dark-subtle">Sprint 14:</span>
+            <span class="font-mono font-bold text-brand-600 dark:text-brand-400">28 / 48 pts</span>
+          </div>
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border">
+            <span class="text-light-subtle dark:text-dark-subtle">Unestimated:</span>
+            <span class="font-mono font-bold text-amber-500">2 issues</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SPRINT 14 (ACTIVE SPRINT CONTAINER) -->
+      <div class="bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border overflow-hidden">
+        
+        <!-- Sprint Header -->
+        <div class="px-5 py-3.5 bg-slate-100/70 dark:bg-dark-card/60 border-b border-light-border dark:border-dark-border flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h2 class="text-sm font-bold text-light-text dark:text-white">Sprint 14 (Active)</h2>
+            <span class="text-[11px] font-mono text-light-muted dark:text-dark-muted">Nov 1 — Nov 15 • 10 days remaining</span>
+          </div>
+          <div class="flex items-center gap-3 text-xs font-mono">
+            <span class="px-2 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold">48 Points</span>
+            <button class="px-2.5 py-1 rounded bg-slate-200 dark:bg-dark-card text-light-text dark:text-white font-semibold">Complete Sprint</button>
+          </div>
+        </div>
+
+        <!-- Issue Rows inside Sprint 14 -->
+        <div class="divide-y divide-light-border dark:divide-dark-border text-xs">
+          
+          <!-- Row 1: NT-101 -->
+          <div class="p-3.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-dark-card/40 transition-colors cursor-pointer" onclick="window.location.href='02_issue_detail.html'">
+            <div class="flex items-center gap-3">
+              <span class="text-light-subtle dark:text-dark-subtle cursor-grab">⋮⋮</span>
+              <span class="text-emerald-500"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg></span>
+              <span class="font-mono font-bold text-brand-600 dark:text-brand-400">NT-101</span>
+              <span class="font-semibold text-light-text dark:text-white">GitHub Webhook Inbox 2-phase worker with lease ownership token verification</span>
+              <span class="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-mono text-[10px]">PR #42</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-amber-500/20 text-amber-700 dark:text-amber-400">IN PROGRESS</span>
+              <span class="font-mono font-bold">8 pts</span>
+              <div class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]">PV</div>
+            </div>
+          </div>
+
+          <!-- Row 2: NT-104 -->
+          <div class="p-3.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-dark-card/40 transition-colors cursor-pointer">
+            <div class="flex items-center gap-3">
+              <span class="text-light-subtle dark:text-dark-subtle cursor-grab">⋮⋮</span>
+              <span class="text-emerald-500"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg></span>
+              <span class="font-mono font-bold text-brand-600 dark:text-brand-400">NT-104</span>
+              <span class="font-semibold text-light-text dark:text-white">Implement project-key uniqueness constraint UNIQUE(workspace_id, project_key)</span>
+              <span class="px-1.5 py-0.2 rounded bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted font-mono text-[10px]">feat/proj-key</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-blue-500/20 text-blue-600 dark:text-blue-400">TO DO</span>
+              <span class="font-mono font-bold">2 pts</span>
+              <div class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]">PV</div>
+            </div>
+          </div>
+
+          <!-- Row 3: NT-103 -->
+          <div class="p-3.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-dark-card/40 transition-colors cursor-pointer">
+            <div class="flex items-center gap-3">
+              <span class="text-light-subtle dark:text-dark-subtle cursor-grab">⋮⋮</span>
+              <span class="text-emerald-500"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg></span>
+              <span class="font-mono font-bold text-brand-600 dark:text-brand-400">NT-103</span>
+              <span class="font-semibold text-light-text dark:text-white">Spring Security permitAll & CSRF ignore filter rule for external GitHub webhooks</span>
+              <span class="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-mono text-[10px]">PR #41</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-purple-500/20 text-purple-600 dark:text-purple-400">IN REVIEW</span>
+              <span class="font-mono font-bold">3 pts</span>
+              <div class="w-6 h-6 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center text-[10px]">SJ</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PRODUCT BACKLOG BUCKET -->
+      <div class="bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border overflow-hidden">
+        
+        <div class="px-5 py-3.5 bg-slate-100/70 dark:bg-dark-card/60 border-b border-light-border dark:border-dark-border flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h2 class="text-sm font-bold text-light-text dark:text-white">Product Backlog (Unplanned)</h2>
+            <span class="text-[11px] font-mono text-light-muted dark:text-dark-muted">18 issues</span>
+          </div>
+          <button class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">+ Quick Issue</button>
+        </div>
+
+        <div class="divide-y divide-light-border dark:divide-dark-border text-xs">
+          
+          <div class="p-3.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-dark-card/40 transition-colors">
+            <div class="flex items-center gap-3">
+              <span class="text-light-subtle dark:text-dark-subtle cursor-grab">⋮⋮</span>
+              <span class="text-blue-500"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></span>
+              <span class="font-mono font-bold text-light-muted dark:text-dark-muted">NT-112</span>
+              <span class="font-semibold text-light-text dark:text-white">Support Bitbucket & GitLab Webhook payload normalizers via Provider SPI port</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted">BACKLOG</span>
+              <span class="font-mono font-bold">5 pts</span>
+              <div class="w-6 h-6 rounded-full border border-dashed border-light-subtle dark:border-dark-subtle text-[10px] flex items-center justify-center font-bold">?</div>
+            </div>
+          </div>
+
+          <div class="p-3.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-dark-card/40 transition-colors">
+            <div class="flex items-center gap-3">
+              <span class="text-light-subtle dark:text-dark-subtle cursor-grab">⋮⋮</span>
+              <span class="text-emerald-500"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg></span>
+              <span class="font-mono font-bold text-light-muted dark:text-dark-muted">NT-109</span>
+              <span class="font-semibold text-light-text dark:text-white">Configure k6 benchmark harness for issue-to-code traceability load tests</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-200 dark:bg-dark-card text-light-muted dark:text-dark-muted">BACKLOG</span>
+              <span class="font-mono font-bold">3 pts</span>
+              <div class="w-6 h-6 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-[10px]">MV</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('nextrack-theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('nextrack-theme', 'dark');
+      }
+    }
+    let sidebarCollapsed = false;
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      const textElements = sidebar.querySelectorAll('.sidebar-text');
+      sidebarCollapsed = !sidebarCollapsed;
+      if (sidebarCollapsed) {
+        sidebar.style.width = '60px';
+        textElements.forEach(el => el.classList.add('hidden'));
+      } else {
+        sidebar.style.width = '224px';
+        textElements.forEach(el => el.classList.remove('hidden'));
+      }
+    }
+    (function init() {
+      if (localStorage.getItem('nextrack-theme') === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>

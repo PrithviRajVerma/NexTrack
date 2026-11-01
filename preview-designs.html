@@ -3,34 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexTrack — UI Screens Showcase</title>
+  <title>NexTrack — UI Suite Showcase</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 </head>
 <body class="bg-[#0A0D14] text-slate-100 font-sans flex flex-col h-screen overflow-hidden">
   
   <!-- Showcase Header -->
-  <header class="h-14 bg-[#111622] border-b border-[#20283E] px-6 flex items-center justify-between shrink-0">
+  <header class="h-14 bg-[#111622] border-b border-[#20283E] px-4 lg:px-6 flex items-center justify-between shrink-0 z-20">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-sm shadow-indigo-500/30">NX</div>
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-extrabold text-xs text-white shadow-sm shadow-indigo-500/30">NX</div>
       <div>
         <h1 class="text-xs font-bold text-white tracking-tight flex items-center gap-2">
-          NexTrack UI Suite
-          <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">JIRA + LINEAR HYBRID</span>
+          NexTrack Complete UI Suite
+          <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">6 SCREENS • JIRA + LINEAR HYBRID</span>
         </h1>
-        <p class="text-[10px] text-slate-400">Pure HTML/CSS · Both Light & Dark themes live</p>
+        <p class="text-[10px] text-slate-400">Pure HTML/CSS · Dual Light & Dark themes live</p>
       </div>
     </div>
 
-    <!-- Screen Tabs (Compare Original vs Refined) -->
-    <div class="flex items-center gap-1.5 bg-[#161D2E] p-1 rounded-lg border border-[#20283E] text-xs">
-      <button id="btnRefined" onclick="switchFrame('nextrack_ui_refined.html', this)" class="px-3 py-1.5 rounded-md font-semibold bg-indigo-600 text-white transition-all shadow-sm flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Refined Kanban (Latest)</span>
+    <!-- Screen Navigation Tabs -->
+    <div class="flex items-center gap-1 bg-[#161D2E] p-1 rounded-lg border border-[#20283E] text-xs overflow-x-auto max-w-2xl">
+      <button id="btn1" onclick="switchFrame('nextrack_ui_refined.html', this)" class="px-2.5 py-1 rounded-md font-semibold bg-indigo-600 text-white transition-all shadow-sm flex items-center gap-1.5 shrink-0">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>1: Kanban Board</span>
       </button>
 
-      <button id="btnOriginal" onclick="switchFrame('ui-screens/01_kanban_board.html', this)" class="px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
-        <span>Original Baseline (01)</span>
+      <button id="btn2" onclick="switchFrame('ui-screens/02_issue_detail.html', this)" class="px-2.5 py-1 rounded-md font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1 shrink-0">
+        <span>2: Issue Detail</span>
+      </button>
+
+      <button id="btn3" onclick="switchFrame('ui-screens/03_backlog_planning.html', this)" class="px-2.5 py-1 rounded-md font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1 shrink-0">
+        <span>3: Backlog</span>
+      </button>
+
+      <button id="btn4" onclick="switchFrame('ui-screens/04_development_hub.html', this)" class="px-2.5 py-1 rounded-md font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1 shrink-0">
+        <span>4: Dev Hub</span>
+      </button>
+
+      <button id="btn5" onclick="switchFrame('ui-screens/05_github_integration_settings.html', this)" class="px-2.5 py-1 rounded-md font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1 shrink-0">
+        <span>5: GitHub Webhooks</span>
+      </button>
+
+      <button id="btn6" onclick="switchFrame('ui-screens/06_project_settings_members.html', this)" class="px-2.5 py-1 rounded-md font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1 shrink-0">
+        <span>6: Settings</span>
+      </button>
+
+      <button id="btn0" onclick="switchFrame('ui-screens/01_kanban_board.html', this)" class="px-2.5 py-1 rounded-md font-medium text-slate-500 hover:text-slate-300 transition-all flex items-center gap-1 shrink-0" title="Baseline Prototype">
+        <span>(v1 Baseline)</span>
       </button>
     </div>
 
@@ -53,9 +73,9 @@
       document.getElementById('previewFrame').src = url;
       document.getElementById('directLink').href = url;
       document.querySelectorAll('header button').forEach(b => {
-        b.className = 'px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1.5 text-xs';
+        b.className = 'px-2.5 py-1 rounded-md font-medium text-slate-400 hover:text-white transition-all flex items-center gap-1 shrink-0';
       });
-      btn.className = 'px-3 py-1.5 rounded-md font-semibold bg-indigo-600 text-white transition-all shadow-sm flex items-center gap-1.5 text-xs';
+      btn.className = 'px-2.5 py-1 rounded-md font-semibold bg-indigo-600 text-white transition-all shadow-sm flex items-center gap-1.5 shrink-0';
     }
   </script>
 </body>

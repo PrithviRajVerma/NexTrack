@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexTrack — Issue Detail & GitHub Traceability (Screen 2)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              200: '#C7D2FE',
+              300: '#A5B4FC',
+              400: '#818CF8',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+              800: '#3730A3',
+              900: '#312E81',
+            },
+            dark: {
+              bg: '#0A0D14',
+              surface: '#111622',
+              card: '#161D2E',
+              cardHover: '#1B2438',
+              columnBg: '#0E131E',
+              border: '#20283E',
+              borderSubtle: '#182033',
+              borderHighlight: '#2E3A5A',
+              text: '#F1F5F9',
+              muted: '#94A3B8',
+              subtle: '#64748B',
+            },
+            light: {
+              bg: '#F8FAFC',
+              surface: '#FFFFFF',
+              card: '#FFFFFF',
+              cardHover: '#F8FAFC',
+              columnBg: '#F1F5F9',
+              border: '#E2E8F0',
+              borderSubtle: '#EDF2F7',
+              borderHighlight: '#CBD5E1',
+              text: '#0F172A',
+              muted: '#475569',
+              subtle: '#94A3B8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #232B40; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb:hover { background: #364366; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    #appSidebar { transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text font-sans antialiased h-screen overflow-hidden flex flex-col selection:bg-brand-500 selection:text-white transition-colors duration-200">
+
+  <!-- ========================================================================= -->
+  <!-- Top Navigation Header                                                     -->
+  <!-- ========================================================================= -->
+  <header class="h-13 border-b border-light-border dark:border-dark-border bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30 transition-colors duration-200 py-2">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebar()" class="p-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors" title="Toggle Sidebar ([)">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+      </button>
+
+      <div class="flex items-center gap-2 pr-3 border-r border-light-border dark:border-dark-border">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-extrabold text-xs shadow-sm shadow-brand-500/30">NX</div>
+        <span class="text-sm font-bold tracking-tight text-light-text dark:text-white hidden sm:inline-block">NexTrack</span>
+      </div>
+
+      <!-- Breadcrumbs -->
+      <div class="flex items-center gap-1.5 text-xs">
+        <a href="nextrack_ui_refined.html" class="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-dark-card transition-colors font-medium text-light-muted dark:text-dark-muted">
+          <span>Acme</span>
+          <span class="text-light-subtle dark:text-dark-subtle">/</span>
+          <span>Core Platform</span>
+        </a>
+        <span class="text-light-subtle dark:text-dark-subtle">/</span>
+        <span class="font-mono font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 dark:bg-brand-500/20 px-1.5 py-0.5 rounded">NT-101</span>
+      </div>
+    </div>
+
+    <!-- Center Search -->
+    <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
+      <div class="relative w-full">
+        <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-light-subtle dark:text-dark-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search issues, PRs, commits (⌘K)..." class="w-full bg-slate-100 dark:bg-dark-card/90 border border-light-border dark:border-dark-border rounded-lg pl-8 pr-12 py-1.5 text-xs text-light-text dark:text-dark-text placeholder-light-subtle dark:placeholder-dark-subtle focus:outline-none focus:ring-1.5 focus:ring-brand-500" />
+        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+          <kbd class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-dark-surface border border-light-border dark:border-dark-borderSubtle text-light-muted dark:text-dark-muted font-medium">⌘K</kbd>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Actions -->
+    <div class="flex items-center gap-2">
+      <a href="nextrack_ui_refined.html" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-border text-light-text dark:text-dark-text text-xs font-semibold transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        <span class="hidden sm:inline">Back to Board</span>
+      </a>
+
+      <!-- Theme Toggle -->
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-slate-100 dark:bg-dark-card hover:bg-slate-200 dark:hover:bg-dark-border text-light-text dark:text-dark-text text-xs font-semibold transition-all shadow-sm" title="Toggle Theme (⌘T)">
+        <span class="dark:inline hidden text-amber-400"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></span>
+        <span class="dark:hidden inline text-indigo-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></span>
+        <span class="hidden sm:inline text-[11px]">Theme</span>
+      </button>
+
+      <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5">
+        <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold">PV</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- App Body Layout: Sidebar + Issue Details Container                        -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Collapsible Sidebar -->
+    <aside id="appSidebar" class="w-56 border-r border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex flex-col justify-between shrink-0 transition-all duration-200 select-none overflow-hidden">
+      <div class="p-3 space-y-5 overflow-y-auto">
+        <div>
+          <div class="sidebar-text px-2 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle">Navigation</div>
+          <nav class="space-y-0.5 text-xs font-medium">
+            <a href="nextrack_ui_refined.html" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors">
+              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+              <span class="sidebar-text truncate">Active Board</span>
+            </a>
+            <a href="03_backlog_planning.html" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors">
+              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+              <span class="sidebar-text truncate">Backlog</span>
+            </a>
+            <a href="04_development_hub.html" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-colors">
+              <svg class="w-4 h-4 shrink-0 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+              <span class="sidebar-text truncate">Development Hub</span>
+            </a>
+          </nav>
+        </div>
+      </div>
+      <div class="sidebar-text p-3 border-t border-light-border dark:border-dark-border text-[11px] text-light-subtle dark:text-dark-subtle">
+        Sprint 14 • 10d left
+      </div>
+    </aside>
+
+    <!-- Main Content Area: Issue Details 2-Column Workspace -->
+    <main class="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-dark-bg p-6 lg:p-8">
+      
+      <!-- Max width container -->
+      <div class="max-w-6xl mx-auto space-y-6">
+
+        <!-- Top Action Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-light-border dark:border-dark-border">
+          <div class="flex items-center gap-3">
+            <span class="text-emerald-500" title="Issue Type: Story">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.732l-4.419 3.082A1 1 0 014 16V4z"/></svg>
+            </span>
+            <span class="font-mono text-base font-bold text-brand-600 dark:text-brand-400">NT-101</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Sprint Priority</span>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex items-center gap-2 text-xs">
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border hover:border-brand-500 font-semibold transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              <span>Edit Title</span>
+            </button>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border hover:border-brand-500 font-semibold transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+              <span>Attach</span>
+            </button>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white font-semibold shadow-sm hover:bg-brand-500 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+              <span>Create Branch</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Issue Title -->
+        <h1 class="text-2xl font-bold text-light-text dark:text-white tracking-tight leading-tight">
+          GitHub Webhook Inbox 2-phase worker with lease ownership token verification
+        </h1>
+
+        <!-- Workflow State Transition Progress Bar (Fixed IssueStatus Enum) -->
+        <div class="p-3 rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle mb-2 flex items-center justify-between">
+            <span>Workflow State Machine (Centralized Transition Engine)</span>
+            <span class="font-mono text-emerald-600 dark:text-emerald-400">Valid Transitions Only</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            <button class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-dark-card text-light-muted dark:text-dark-muted hover:border-brand-500 border border-transparent transition-all">1. BACKLOG</button>
+            <button class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-dark-card text-light-muted dark:text-dark-muted hover:border-brand-500 border border-transparent transition-all">2. TO DO</button>
+            <button class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40 shadow-sm flex items-center justify-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              3. IN PROGRESS
+            </button>
+            <button class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-dark-card text-light-muted dark:text-dark-muted hover:border-brand-500 border border-transparent transition-all">4. IN REVIEW</button>
+            <button class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-dark-card text-light-muted dark:text-dark-muted hover:border-brand-500 border border-transparent transition-all">5. DONE</button>
+          </div>
+        </div>
+
+        <!-- 2-Column Split: Details/Activity (Left) vs Metadata (Right) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Left Column (Span 2) -->
+          <div class="lg:col-span-2 space-y-6">
+
+            <!-- Description Card -->
+            <div class="p-5 rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border space-y-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle">Description</h3>
+              <div class="text-xs text-light-text dark:text-slate-300 space-y-3 leading-relaxed">
+                <p>
+                  Implement the 2-phase polling worker that claims pending raw webhook events from the <code class="font-mono text-brand-600 dark:text-brand-400 bg-slate-100 dark:bg-dark-card px-1.5 py-0.5 rounded">webhook_inbox_events</code> table and transitions them through idempotent payload processing without blocking the initial webhook response.
+                </p>
+                <div class="p-3 rounded-lg bg-slate-100/70 dark:bg-dark-card/60 border border-light-border dark:border-dark-border font-mono text-[11px] space-y-1">
+                  <div class="text-light-subtle dark:text-dark-subtle">// Phase 1: Atomic lease claim</div>
+                  <div>SELECT id FROM webhook_inbox_events WHERE status = 'PENDING' FOR UPDATE SKIP LOCKED LIMIT 50;</div>
+                  <div class="text-light-subtle dark:text-dark-subtle">// Phase 2: Normalized domain event dispatch</div>
+                  <div>UPDATE webhook_inbox_events SET status = 'PROCESSED' WHERE id = :id AND lease_token = :token;</div>
+                </div>
+                <h4 class="font-bold text-xs pt-1">Acceptance Criteria:</h4>
+                <ul class="list-disc pl-5 space-y-1">
+                  <li>HMAC signature validated against raw request bytes before persistence.</li>
+                  <li>Deduplication enforced via <code class="font-mono text-[10px] bg-slate-100 dark:bg-dark-card px-1 rounded">UNIQUE(provider, delivery_id)</code>.</li>
+                  <li>Lease heartbeat mechanism releases deadlocks if worker crashes mid-transaction.</li>
+                  <li>Testcontainers integration test verifies 100 concurrent incoming webhooks without duplicate writes.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Jira-Inspired Development Hub (The Core Differentiator) -->
+            <div class="p-5 rounded-xl bg-light-surface dark:bg-dark-surface border-2 border-brand-500/40 space-y-4">
+              <div class="flex items-center justify-between pb-2 border-b border-light-border dark:border-dark-border">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-brand-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L2.414 10l3.293 3.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L17.586 10l-3.293-3.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                  <h3 class="text-sm font-bold text-light-text dark:text-white">GitHub Development Traceability</h3>
+                </div>
+                <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">GitHub App Verified</span>
+              </div>
+
+              <!-- VCS Entities Grid -->
+              <div class="space-y-3">
+                
+                <!-- Pull Request -->
+                <div class="p-3 rounded-lg bg-slate-50 dark:bg-dark-card border border-light-border dark:border-dark-border flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-xs font-bold text-light-text dark:text-white flex items-center gap-2">
+                        <span class="font-mono text-brand-600 dark:text-brand-400">PR #42</span>
+                        <span>feat(inbox): 2-phase worker lease protocol</span>
+                      </div>
+                      <div class="text-[11px] text-light-muted dark:text-dark-muted font-mono">PrithviRajVerma/nextrack • Opened 3h ago by Prithvi Verma</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-300 font-mono font-bold">OPEN</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold">✓ 1 Approval (Alice Chen)</span>
+                  </div>
+                </div>
+
+                <!-- Git Branch -->
+                <div class="p-3 rounded-lg bg-slate-50 dark:bg-dark-card border border-light-border dark:border-dark-border flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-xs font-mono font-bold text-light-text dark:text-white">feat/NT-101-inbox-worker</div>
+                      <div class="text-[11px] text-light-muted dark:text-dark-muted font-mono">3 commits ahead of main • Last pushed 45m ago</div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-mono text-light-subtle dark:text-dark-subtle">repo: nextrack-backend</span>
+                </div>
+
+                <!-- CI Build & Deployment Pipeline -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="p-3 rounded-lg bg-slate-50 dark:bg-dark-card border border-light-border dark:border-dark-border flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                      <div>
+                        <div class="text-xs font-bold text-light-text dark:text-white">CI Workflow #184</div>
+                        <div class="text-[10px] text-light-muted dark:text-dark-muted font-mono">Build & Testcontainers Passed</div>
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">42s</span>
+                  </div>
+
+                  <div class="p-3 rounded-lg bg-slate-50 dark:bg-dark-card border border-light-border dark:border-dark-border flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                      <div>
+                        <div class="text-xs font-bold text-light-text dark:text-white">Staging Preview</div>
+                        <div class="text-[10px] text-light-muted dark:text-dark-muted font-mono">Deployed via ArgoCD</div>
+                      </div>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-bold">READY</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Discussion & Activity Audit Log -->
+            <div class="p-5 rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border space-y-4">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle">Activity & Audit Timeline</h3>
+              
+              <!-- Timeline Items -->
+              <div class="space-y-3.5 border-l-2 border-light-border dark:border-dark-border pl-4 ml-2 text-xs">
+                
+                <div class="relative">
+                  <div class="absolute -left-[23px] top-0.5 w-3 h-3 rounded-full bg-purple-500 ring-4 ring-light-surface dark:ring-dark-surface"></div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-bold text-light-text dark:text-white">Alice Chen</span>
+                    <span class="text-[10px] text-light-subtle dark:text-dark-subtle font-mono">1h ago</span>
+                  </div>
+                  <p class="text-light-muted dark:text-slate-300 bg-slate-100 dark:bg-dark-card p-2.5 rounded-lg border border-light-border dark:border-dark-border">
+                    Reviewed PR #42. The HMAC verification against raw bytes looks clean and handles the Spring request body stream caching properly!
+                  </p>
+                </div>
+
+                <div class="relative">
+                  <div class="absolute -left-[23px] top-0.5 w-3 h-3 rounded-full bg-brand-500 ring-4 ring-light-surface dark:ring-dark-surface"></div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-light-text dark:text-white">Prithvi Verma</span>
+                    <span class="text-light-muted dark:text-dark-muted">moved issue from</span>
+                    <span class="font-mono text-light-text dark:text-white bg-slate-200 dark:bg-dark-card px-1 rounded">TO_DO</span>
+                    <span class="text-light-muted dark:text-dark-muted">to</span>
+                    <span class="font-mono text-amber-500 bg-amber-500/10 px-1 rounded font-bold">IN_PROGRESS</span>
+                    <span class="text-[10px] text-light-subtle dark:text-dark-subtle font-mono ml-auto">3h ago</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Comment Input Box -->
+              <div class="pt-2">
+                <textarea rows="2" placeholder="Write a comment or type @ to mention teammates..." class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg p-2.5 text-xs text-light-text dark:text-white focus:outline-none focus:ring-1.5 focus:ring-brand-500"></textarea>
+                <div class="flex justify-end pt-2">
+                  <button class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs transition-colors">Post Comment</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Metadata Properties Panel -->
+          <div class="space-y-4">
+            
+            <div class="p-5 rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border space-y-4">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle">Properties</h3>
+              
+              <!-- Assignee -->
+              <div>
+                <label class="block text-[11px] font-medium text-light-subtle dark:text-dark-subtle mb-1">Assignee</label>
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs">
+                  <div class="w-6 h-6 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">PV</div>
+                  <span class="font-semibold text-light-text dark:text-white">Prithvi Verma</span>
+                </div>
+              </div>
+
+              <!-- Reporter -->
+              <div>
+                <label class="block text-[11px] font-medium text-light-subtle dark:text-dark-subtle mb-1">Reporter</label>
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs">
+                  <div class="w-6 h-6 rounded-full bg-purple-600 text-white text-[10px] font-bold flex items-center justify-center">MV</div>
+                  <span class="font-medium text-light-text dark:text-white">Marcus Vance</span>
+                </div>
+              </div>
+
+              <!-- Priority -->
+              <div>
+                <label class="block text-[11px] font-medium text-light-subtle dark:text-dark-subtle mb-1">Priority</label>
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs">
+                  <span class="text-rose-500 font-bold">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 11l7-7 7 7M5 19l7-7 7 7"/></svg>
+                  </span>
+                  <span class="font-semibold text-rose-600 dark:text-rose-400">Urgent</span>
+                </div>
+              </div>
+
+              <!-- Story Points & Sprint -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-medium text-light-subtle dark:text-dark-subtle mb-1">Story Points</label>
+                  <div class="p-2 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border font-mono text-xs font-bold text-light-text dark:text-white">
+                    8 pts
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-medium text-light-subtle dark:text-dark-subtle mb-1">Sprint</label>
+                  <div class="p-2 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs font-semibold text-brand-600 dark:text-brand-400">
+                    Sprint 14
+                  </div>
+                </div>
+              </div>
+
+              <!-- Component / Module -->
+              <div>
+                <label class="block text-[11px] font-medium text-light-subtle dark:text-dark-subtle mb-1">Module</label>
+                <span class="inline-block px-2 py-1 rounded bg-indigo-500/10 text-brand-600 dark:text-brand-400 text-xs font-mono font-medium border border-brand-500/20">
+                  development-vcs
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('nextrack-theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('nextrack-theme', 'dark');
+      }
+    }
+    let sidebarCollapsed = false;
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      const textElements = sidebar.querySelectorAll('.sidebar-text');
+      sidebarCollapsed = !sidebarCollapsed;
+      if (sidebarCollapsed) {
+        sidebar.style.width = '60px';
+        textElements.forEach(el => el.classList.add('hidden'));
+      } else {
+        sidebar.style.width = '224px';
+        textElements.forEach(el => el.classList.remove('hidden'));
+      }
+    }
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        toggleTheme();
+      } else if (e.key === '[' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        toggleSidebar();
+      }
+    });
+    (function init() {
+      if (localStorage.getItem('nextrack-theme') === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>
