@@ -74,9 +74,9 @@
 <body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text font-sans antialiased h-screen overflow-hidden flex flex-col selection:bg-brand-500 selection:text-white transition-colors duration-200">
 
   <!-- ========================================================================= -->
-  <!-- Unified Top Navigation Header                                             -->
+  <!-- Top Navigation Header (Always Visible across in-app views)               -->
   <!-- ========================================================================= -->
-  <header class="h-13 border-b border-light-border dark:border-dark-border bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30 transition-colors duration-200 py-2">
+  <header id="mainAppHeader" class="h-13 border-b border-light-border dark:border-dark-border bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30 transition-colors duration-200 py-2">
     
     <!-- Left: App Brand & Interactive Breadcrumb Navigation -->
     <div class="flex items-center gap-3">
@@ -102,16 +102,21 @@
 
       <!-- Workspace & Breadcrumb State -->
       <div class="flex items-center gap-1.5 text-xs">
-        <div class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-100/60 dark:bg-dark-card/60 border border-transparent font-medium text-light-muted dark:text-dark-muted">
+        <button onclick="navigateTo('projects')" class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-100/70 dark:bg-dark-card/70 border border-light-border/70 dark:border-dark-border/70 hover:border-brand-500 font-medium text-light-text dark:text-white transition-colors" title="Switch Workspace or Project">
           <div class="w-4 h-4 rounded bg-purple-500/20 text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center text-[9px]">AC</div>
-          <span class="hidden md:inline font-semibold text-light-text dark:text-white">Acme Corp</span>
-        </div>
+          <span class="hidden md:inline font-semibold">Acme Corp</span>
+          <svg class="w-3 h-3 text-light-subtle dark:text-dark-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+
         <span class="text-light-subtle dark:text-dark-subtle">/</span>
+
         <button onclick="navigateTo('board')" class="font-semibold text-light-text dark:text-white hover:text-brand-500 flex items-center gap-1">
           <span>Core Platform</span>
           <span class="font-mono text-[10px] text-brand-600 dark:text-brand-400 font-bold bg-brand-500/10 dark:bg-brand-500/20 px-1 py-0.2 rounded">NT</span>
         </button>
+
         <span class="text-light-subtle dark:text-dark-subtle">/</span>
+
         <span id="currentViewBreadcrumb" class="font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20">
           Active Board
         </span>
@@ -149,7 +154,7 @@
         <kbd class="hidden sm:inline-block text-[9px] font-mono px-1 rounded bg-brand-700/60 text-brand-100 ml-1">C</kbd>
       </button>
 
-      <!-- GitHub App Sync Status Indicator (Clicking switches to GitHub Setup screen) -->
+      <!-- GitHub App Sync Status Indicator -->
       <button 
         onclick="navigateTo('webhooks')"
         class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-xs cursor-pointer hover:border-emerald-500/50 transition-colors" 
@@ -160,7 +165,17 @@
         <span class="text-[10px] px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-semibold border border-emerald-500/20">Active</span>
       </button>
 
-      <div class="h-4 w-px bg-light-border dark:bg-dark-border mx-1 hidden sm:block"></div>
+      <!-- Notification Bell with Slide-over Drawer trigger -->
+      <button 
+        onclick="toggleNotificationDrawer()" 
+        class="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-card text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white transition-colors"
+        title="Notifications (PR updates, CI status, mentions)"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-500 ring-2 ring-light-surface dark:ring-dark-surface"></span>
+      </button>
+
+      <div class="h-4 w-px bg-light-border dark:border-dark-border mx-1 hidden sm:block"></div>
 
       <!-- Live Dual-Theme Toggle Button -->
       <button 
@@ -178,12 +193,12 @@
         <span class="hidden sm:inline text-[11px]">Theme</span>
       </button>
 
-      <!-- Profile Avatar -->
-      <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5 ml-1">
+      <!-- Profile Avatar & Account Menu -->
+      <button onclick="navigateTo('auth')" class="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5 ml-1" title="User Profile: Prithvi (Click to View Auth/Login Screen)">
         <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold">
           PV
         </div>
-      </div>
+      </button>
 
     </div>
   </header>
@@ -308,12 +323,26 @@
           </nav>
         </div>
 
-        <!-- Settings Section -->
+        <!-- Management & Settings Section -->
         <div>
           <div class="sidebar-text px-2 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-light-subtle dark:text-dark-subtle">
-            Settings
+            Workspaces & Settings
           </div>
           <nav class="space-y-0.5 text-xs font-medium">
+            <!-- Tab: Projects Hub -->
+            <button 
+              id="nav-projects"
+              onclick="navigateTo('projects')" 
+              class="nav-tab-btn w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-all"
+            >
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <span class="sidebar-text truncate">Projects Hub</span>
+              </div>
+              <span class="sidebar-text text-[10px] font-mono text-light-subtle dark:text-dark-subtle">3</span>
+            </button>
+
+            <!-- Tab: Project Settings & Team Roles -->
             <button 
               id="nav-settings"
               onclick="navigateTo('settings')" 
@@ -321,9 +350,21 @@
             >
               <div class="flex items-center gap-2.5">
                 <svg class="w-4 h-4 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                <span class="sidebar-text truncate">Project & Roles</span>
+                <span class="sidebar-text truncate">Team & Roles</span>
               </div>
               <span class="sidebar-text text-[10px] font-mono text-light-subtle dark:text-dark-subtle">12</span>
+            </button>
+
+            <!-- Tab: Auth / Login Demo -->
+            <button 
+              id="nav-auth"
+              onclick="navigateTo('auth')" 
+              class="nav-tab-btn w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-dark-card transition-all"
+            >
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                <span class="sidebar-text truncate">Sign In Screen</span>
+              </div>
             </button>
           </nav>
         </div>
@@ -333,14 +374,14 @@
       <!-- Footer: Fast Switcher Hint -->
       <div class="sidebar-text p-3 border-t border-light-border dark:border-dark-border bg-slate-50 dark:bg-dark-surface/50 text-[11px] text-light-subtle dark:text-dark-subtle">
         <div class="flex items-center justify-between">
-          <span>Shortcuts 1-5</span>
-          <span class="font-mono text-[10px]">Switch Tabs</span>
+          <span>Shortcuts 1-7</span>
+          <span class="font-mono text-[10px]">Switch Views</span>
         </div>
       </div>
     </aside>
 
     <!-- ======================================================================= -->
-    <!-- DYNAMIC WORKSPACE CONTAINER (Switches smoothly between Views)          -->
+    <!-- DYNAMIC WORKSPACE CONTAINER (Switches smoothly between All Views)      -->
     <!-- ======================================================================= -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
 
@@ -644,7 +685,7 @@
 
         </div>
 
-        <!-- Alternative List View Container (Hidden by default, shown when clicking 'List') -->
+        <!-- Alternative List View Container -->
         <div id="boardListViewContainer" class="hidden flex-1 p-5 overflow-y-auto">
           <div class="bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border overflow-hidden">
             <table class="w-full text-left text-xs">
@@ -709,7 +750,11 @@
             </div>
 
             <div class="flex items-center gap-2 text-xs">
-              <button onclick="alert('Git branch dialog triggered')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white font-semibold shadow-sm hover:bg-brand-500 transition-colors">
+              <button onclick="openManualLinkModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-card hover:border-brand-500 font-semibold transition-colors">
+                <svg class="w-3.5 h-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                <span>+ Link GitHub Item (Manual)</span>
+              </button>
+              <button onclick="alert('Git branch created: feat/NT-101-inbox-worker')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white font-semibold shadow-sm hover:bg-brand-500 transition-colors">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
                 <span>Create Branch</span>
               </button>
@@ -973,7 +1018,7 @@
             </div>
           </div>
 
-          <!-- Branches Table (Hidden by default) -->
+          <!-- Branches Table -->
           <div id="dev-branches-content" class="hidden divide-y divide-light-border dark:divide-dark-border text-xs font-mono p-4 space-y-2">
             <div class="p-2 flex items-center justify-between">
               <span class="text-brand-600 dark:text-brand-400 font-bold">feat/NT-101-inbox-worker</span>
@@ -985,7 +1030,7 @@
             </div>
           </div>
 
-          <!-- Builds Table (Hidden by default) -->
+          <!-- Builds Table -->
           <div id="dev-builds-content" class="hidden divide-y divide-light-border dark:divide-dark-border text-xs font-mono p-4 space-y-2">
             <div class="p-2 flex items-center justify-between">
               <span class="text-emerald-600 dark:text-emerald-400 font-bold">Build #184: Testcontainers Passed</span>
@@ -1014,7 +1059,7 @@
             </h1>
             <p class="text-xs text-light-muted dark:text-dark-muted mt-1">Raw-byte HMAC-SHA256 signature verification & 2-phase inbox worker status.</p>
           </div>
-          <button onclick="alert('Webhook secret rotated')" class="px-3.5 py-2 rounded-lg bg-brand-600 text-white font-semibold text-xs shadow-sm">Rotate Secret</button>
+          <button onclick="alert('Webhook secret rotated successfully')" class="px-3.5 py-2 rounded-lg bg-brand-600 text-white font-semibold text-xs shadow-sm">Rotate Secret</button>
         </div>
 
         <div class="bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border overflow-hidden">
@@ -1036,17 +1081,17 @@
             <tbody class="divide-y divide-light-border dark:divide-dark-border text-[11px]">
               <tr class="hover:bg-slate-50 dark:hover:bg-dark-card/40">
                 <td class="p-3 pl-5 font-bold text-light-text dark:text-white">a8f930e1-4c12-4e9a</td>
-                <td class="p-3 text-brand-600 dark:text-brand-400">pull_request.opened</td>
+                <td class="p-3 text-brand-600 dark:text-brand-400 font-semibold">pull_request.opened</td>
                 <td class="p-3 text-emerald-600 dark:text-emerald-400 font-bold">✓ RAW BYTE VALID</td>
                 <td class="p-3"><span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-bold">PROCESSED</span></td>
-                <td class="p-3 pr-5 text-right"><button onclick="alert('Payload: { action: opened, number: 42, repo: nextrack-backend }')" class="text-brand-600 dark:text-brand-400 hover:underline">Inspect</button></td>
+                <td class="p-3 pr-5 text-right"><button onclick="openPayloadInspector('a8f930e1-4c12-4e9a', 'pull_request.opened', 'PR #42', 'sha256=3b92f...')" class="text-brand-600 dark:text-brand-400 hover:underline">Inspect Payload</button></td>
               </tr>
               <tr class="hover:bg-slate-50 dark:hover:bg-dark-card/40">
                 <td class="p-3 pl-5 font-bold text-light-text dark:text-white">7d3b120c-8e21-419b</td>
-                <td class="p-3 text-brand-600 dark:text-brand-400">check_run.completed</td>
+                <td class="p-3 text-brand-600 dark:text-brand-400 font-semibold">check_run.completed</td>
                 <td class="p-3 text-emerald-600 dark:text-emerald-400 font-bold">✓ RAW BYTE VALID</td>
                 <td class="p-3"><span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-bold">PROCESSED</span></td>
-                <td class="p-3 pr-5 text-right"><button onclick="alert('Payload: { status: completed, conclusion: success, build: 184 }')" class="text-brand-600 dark:text-brand-400 hover:underline">Inspect</button></td>
+                <td class="p-3 pr-5 text-right"><button onclick="openPayloadInspector('7d3b120c-8e21-419b', 'check_run.completed', 'Build #184', 'sha256=8a17d...')" class="text-brand-600 dark:text-brand-400 hover:underline">Inspect Payload</button></td>
               </tr>
             </tbody>
           </table>
@@ -1055,7 +1100,83 @@
       </div>
 
       <!-- ------------------------------------------------------------------- -->
-      <!-- VIEW 6: PROJECT SETTINGS & TEAM ROLES                               -->
+      <!-- VIEW 6: WORKSPACE & ALL PROJECTS HUB (NEW!)                         -->
+      <!-- ------------------------------------------------------------------- -->
+      <div id="view-projects" class="view-container hidden flex-1 overflow-y-auto bg-slate-50/60 dark:bg-dark-bg p-6 lg:p-8 space-y-6">
+        
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-light-surface dark:bg-dark-surface p-5 rounded-xl border border-light-border dark:border-dark-border">
+          <div>
+            <h1 class="text-xl font-bold text-light-text dark:text-white flex items-center gap-2">
+              <span>Workspace Projects Hub</span>
+              <span class="text-xs font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Acme Corp</span>
+            </h1>
+            <p class="text-xs text-light-muted dark:text-dark-muted mt-1">
+              Multi-tenant project isolation. Unique project keys scoped per workspace: <code class="font-mono text-brand-600 dark:text-brand-400 font-semibold">UNIQUE(workspace_id, project_key)</code>.
+            </p>
+          </div>
+          <button onclick="openCreateProjectModal()" class="px-3.5 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs shadow-sm flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Create New Project</span>
+          </button>
+        </div>
+
+        <!-- Projects Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          
+          <!-- Project 1 (Active NT) -->
+          <div onclick="navigateTo('board')" class="p-5 rounded-xl bg-light-surface dark:bg-dark-surface border-2 border-brand-500/80 shadow-md cursor-pointer hover:scale-[1.01] transition-all space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-sm font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded">NT</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-bold">ACTIVE</span>
+            </div>
+            <h3 class="text-base font-bold text-light-text dark:text-white">Core Platform</h3>
+            <p class="text-xs text-light-muted dark:text-dark-muted leading-relaxed">
+              Modular monolith backend, transactional webhook inbox worker, and GitHub App integration layer.
+            </p>
+            <div class="pt-3 border-t border-light-border dark:border-dark-border flex items-center justify-between text-xs text-light-subtle dark:text-dark-subtle font-mono">
+              <span>9 issues active</span>
+              <span>3 repos linked</span>
+            </div>
+          </div>
+
+          <!-- Project 2 -->
+          <div class="p-5 rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border shadow-sm hover:border-brand-500/40 cursor-pointer space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-sm font-bold text-light-text dark:text-white bg-slate-100 dark:bg-dark-card px-2 py-0.5 rounded">CLI</span>
+              <span class="text-[10px] font-mono text-light-subtle dark:text-dark-subtle">Sprint 4</span>
+            </div>
+            <h3 class="text-base font-bold text-light-text dark:text-white">Developer CLI Tooling</h3>
+            <p class="text-xs text-light-muted dark:text-dark-muted leading-relaxed">
+              Command line interface for fast branch creation, issue transition commands, and local git hooks.
+            </p>
+            <div class="pt-3 border-t border-light-border dark:border-dark-border flex items-center justify-between text-xs text-light-subtle dark:text-dark-subtle font-mono">
+              <span>14 issues</span>
+              <span>1 repo linked</span>
+            </div>
+          </div>
+
+          <!-- Project 3 -->
+          <div class="p-5 rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border shadow-sm hover:border-brand-500/40 cursor-pointer space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-sm font-bold text-light-text dark:text-white bg-slate-100 dark:bg-dark-card px-2 py-0.5 rounded">BILL</span>
+              <span class="text-[10px] font-mono text-light-subtle dark:text-dark-subtle">Planning</span>
+            </div>
+            <h3 class="text-base font-bold text-light-text dark:text-white">Billing & Metering Service</h3>
+            <p class="text-xs text-light-muted dark:text-dark-muted leading-relaxed">
+              Usage-based seat metering, Stripe webhook synchronizer, and customer invoicing portal.
+            </p>
+            <div class="pt-3 border-t border-light-border dark:border-dark-border flex items-center justify-between text-xs text-light-subtle dark:text-dark-subtle font-mono">
+              <span>6 issues</span>
+              <span>1 repo linked</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ------------------------------------------------------------------- -->
+      <!-- VIEW 7: PROJECT SETTINGS & TEAM ROLES                               -->
       <!-- ------------------------------------------------------------------- -->
       <div id="view-settings" class="view-container hidden flex-1 overflow-y-auto bg-slate-50/60 dark:bg-dark-bg p-6 lg:p-8 space-y-6">
         
@@ -1098,15 +1219,72 @@
 
       </div>
 
+      <!-- ------------------------------------------------------------------- -->
+      <!-- VIEW 8: AUTHENTICATION / LOGIN & SIGN UP SCREEN (NEW!)              -->
+      <!-- ------------------------------------------------------------------- -->
+      <div id="view-auth" class="view-container hidden flex-1 overflow-y-auto bg-slate-100/70 dark:bg-[#070A10] flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border shadow-2xl p-8 space-y-6">
+          
+          <div class="text-center space-y-2">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-extrabold text-base mx-auto shadow-md shadow-brand-500/30">
+              NX
+            </div>
+            <h2 class="text-xl font-bold text-light-text dark:text-white tracking-tight">Sign in to NexTrack</h2>
+            <p class="text-xs text-light-muted dark:text-dark-muted">Portfolio-grade developer issue tracking & GitHub App sync</p>
+          </div>
+
+          <!-- Fast 1-Click Demo Login Button -->
+          <button 
+            onclick="navigateTo('board')" 
+            class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs transition-all shadow-md shadow-brand-500/25 flex items-center justify-center gap-2"
+          >
+            <span>Continue as Prithvi Verma (Admin Demo)</span>
+            <span class="text-[10px] font-mono bg-brand-700/60 px-1.5 py-0.5 rounded">1-Click</span>
+          </button>
+
+          <div class="flex items-center gap-3">
+            <div class="h-px bg-light-border dark:border-dark-border flex-1"></div>
+            <span class="text-[10px] font-mono text-light-subtle dark:text-dark-subtle uppercase">Or with credentials</span>
+            <div class="h-px bg-light-border dark:border-dark-border flex-1"></div>
+          </div>
+
+          <div class="space-y-3.5 text-xs">
+            <div>
+              <label class="block font-medium text-light-subtle dark:text-dark-subtle mb-1">Work Email</label>
+              <input type="email" value="prithvi@nextrack.dev" class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-3 py-2 text-light-text dark:text-white focus:outline-none focus:ring-1.5 focus:ring-brand-500 font-mono" />
+            </div>
+
+            <div>
+              <label class="block font-medium text-light-subtle dark:text-dark-subtle mb-1">Password</label>
+              <input type="password" value="••••••••••••" class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-3 py-2 text-light-text dark:text-white focus:outline-none focus:ring-1.5 focus:ring-brand-500" />
+            </div>
+
+            <button onclick="navigateTo('board')" class="w-full py-2 rounded-lg bg-slate-200 dark:bg-dark-card hover:bg-slate-300 dark:hover:bg-dark-border text-light-text dark:text-white font-semibold transition-colors">
+              Sign In with Email
+            </button>
+          </div>
+
+          <div class="pt-3 text-center text-[11px] text-light-subtle dark:text-dark-subtle">
+            Enterprise RBAC • Raw Byte HMAC Webhooks • Modular Monolith
+          </div>
+
+        </div>
+      </div>
+
     </main>
 
   </div>
 
-  <!-- Fast Create Issue Modal ('C' Shortcut) -->
+  <!-- ========================================================================= -->
+  <!-- MODAL 1: Fast Issue Creation Dialog ('C' Shortcut)                        -->
+  <!-- ========================================================================= -->
   <div id="createModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
     <div class="w-full max-w-lg bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border shadow-2xl p-5 space-y-4">
       <div class="flex items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
-        <h3 class="text-sm font-bold text-light-text dark:text-white">Create New Issue</h3>
+        <h3 class="text-sm font-bold text-light-text dark:text-white flex items-center gap-2">
+          <span>Create New Issue</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400">NT-113</span>
+        </h3>
         <button onclick="closeCreateModal()" class="text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white">✕</button>
       </div>
       <div>
@@ -1121,17 +1299,158 @@
   </div>
 
   <!-- ========================================================================= -->
+  <!-- MODAL 2: Manual Development Link Dialog (Section 6.8.7)                   -->
+  <!-- ========================================================================= -->
+  <div id="manualLinkModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="w-full max-w-md bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border shadow-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
+        <h3 class="text-sm font-bold text-light-text dark:text-white flex items-center gap-2">
+          <span>Manual GitHub Link</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold">MANUAL LINK</span>
+        </h3>
+        <button onclick="closeManualLinkModal()" class="text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white">✕</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-light-subtle dark:text-dark-subtle mb-1">Entity Type</label>
+          <select class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg p-2 text-light-text dark:text-white">
+            <option>Pull Request (URL or #Number)</option>
+            <option>Git Branch Name</option>
+            <option>Commit SHA</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium text-light-subtle dark:text-dark-subtle mb-1">GitHub Identifier / URL</label>
+          <input type="text" placeholder="https://github.com/PrithviRajVerma/nextrack/pull/42" class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-3 py-2 text-light-text dark:text-white font-mono" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-light-border dark:border-dark-border">
+        <button onclick="closeManualLinkModal()" class="px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border text-xs font-semibold text-light-muted dark:text-dark-muted">Cancel</button>
+        <button onclick="alert('Linked GitHub Entity with link_type = MANUAL'); closeManualLinkModal();" class="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold">Link Item</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 3: Webhook Payload Inspector Drawer                                 -->
+  <!-- ========================================================================= -->
+  <div id="payloadModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="w-full max-w-2xl bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border shadow-2xl p-5 space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
+        <div>
+          <h3 class="text-sm font-bold text-light-text dark:text-white flex items-center gap-2">
+            <span>Webhook Raw Payload Inspector</span>
+            <span id="inspectEventBadge" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 font-bold">HMAC VERIFIED</span>
+          </h3>
+          <div id="inspectDeliveryId" class="text-[11px] font-mono text-light-muted dark:text-dark-muted mt-0.5">Delivery ID: a8f930e1-4c12-4e9a</div>
+        </div>
+        <button onclick="closePayloadInspector()" class="text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white">✕</button>
+      </div>
+      <div class="flex-1 overflow-y-auto space-y-3 font-mono text-xs">
+        <div>
+          <div class="text-[10px] font-bold text-light-subtle dark:text-dark-subtle uppercase mb-1">Raw HMAC Header (X-Hub-Signature-256)</div>
+          <div id="inspectHmac" class="p-2 rounded bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border text-emerald-600 dark:text-emerald-400 break-all text-[11px]">sha256=3b92f7...</div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-light-subtle dark:text-dark-subtle uppercase mb-1">Parsed Payload JSON</div>
+          <pre class="p-3 rounded bg-slate-900 text-slate-100 text-[11px] overflow-x-auto leading-relaxed">
+{
+  "action": "opened",
+  "number": 42,
+  "pull_request": {
+    "title": "feat(inbox): 2-phase worker with lease token verification",
+    "state": "open",
+    "head": { "ref": "feat/NT-101-inbox-worker" },
+    "user": { "login": "PrithviRajVerma" }
+  },
+  "repository": { "full_name": "Acme-Engineering/nextrack-backend" }
+}</pre>
+        </div>
+      </div>
+      <div class="flex justify-end pt-2 border-t border-light-border dark:border-dark-border">
+        <button onclick="closePayloadInspector()" class="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 4: Create Project Dialog (Workspace Scope)                          -->
+  <!-- ========================================================================= -->
+  <div id="createProjectModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="w-full max-w-md bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border shadow-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
+        <h3 class="text-sm font-bold text-light-text dark:text-white">Create New Project</h3>
+        <button onclick="closeCreateProjectModal()" class="text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white">✕</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-light-subtle dark:text-dark-subtle mb-1">Project Name</label>
+          <input id="newProjectName" type="text" placeholder="e.g. Analytics Engine" class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-3 py-2 text-light-text dark:text-white" />
+        </div>
+        <div>
+          <label class="block font-medium text-light-subtle dark:text-dark-subtle mb-1">
+            Project Key <span class="font-mono text-brand-600 dark:text-brand-400 font-bold">(e.g. AE)</span>
+          </label>
+          <input id="newProjectKey" type="text" placeholder="AE" maxlength="10" class="w-full bg-slate-100 dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg px-3 py-2 text-light-text dark:text-white font-mono font-bold uppercase" />
+          <p class="text-[10px] text-light-subtle dark:text-dark-subtle mt-1 font-mono">Enforced unique in workspace: UNIQUE(workspace_id, project_key)</p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-light-border dark:border-dark-border">
+        <button onclick="closeCreateProjectModal()" class="px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border text-xs font-semibold text-light-muted dark:text-dark-muted">Cancel</button>
+        <button onclick="submitNewProject()" class="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- DRAWER: Notifications Slide-Over                                          -->
+  <!-- ========================================================================= -->
+  <div id="notificationDrawer" class="fixed inset-0 z-50 hidden">
+    <div onclick="toggleNotificationDrawer()" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-80 bg-light-surface dark:bg-dark-surface border-l border-light-border dark:border-dark-border shadow-2xl p-5 flex flex-col space-y-4">
+      <div class="flex items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
+        <h3 class="text-sm font-bold text-light-text dark:text-white flex items-center gap-2">
+          <span>Notifications</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-brand-500/20 text-brand-600 dark:text-brand-400 font-bold">3 new</span>
+        </h3>
+        <button onclick="toggleNotificationDrawer()" class="text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-white">✕</button>
+      </div>
+      <div class="space-y-3 text-xs overflow-y-auto flex-1">
+        <div class="p-3 rounded-lg bg-slate-50 dark:bg-dark-card border border-light-border dark:border-dark-border space-y-1">
+          <div class="font-bold text-light-text dark:text-white flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+            <span>PR #42 Approved</span>
+          </div>
+          <p class="text-[11px] text-light-muted dark:text-dark-muted">Alice Chen approved pull request on NT-101.</p>
+          <span class="text-[10px] font-mono text-light-subtle dark:text-dark-subtle">12m ago</span>
+        </div>
+
+        <div class="p-3 rounded-lg bg-slate-50 dark:bg-dark-card border border-light-border dark:border-dark-border space-y-1">
+          <div class="font-bold text-light-text dark:text-white flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>CI Build #184 Passed</span>
+          </div>
+          <p class="text-[11px] text-light-muted dark:text-dark-muted">Testcontainers test suite passed for branch feat/NT-101.</p>
+          <span class="text-[10px] font-mono text-light-subtle dark:text-dark-subtle">45m ago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- Client-Side Routing & View Switcher Engine                                -->
   <!-- ========================================================================= -->
   <script>
-    const views = ['board', 'issue', 'backlog', 'devhub', 'webhooks', 'settings'];
+    const views = ['board', 'issue', 'backlog', 'devhub', 'webhooks', 'projects', 'settings', 'auth'];
     const viewBreadcrumbs = {
       board: 'Active Board',
       issue: 'NT-101 Detail',
       backlog: 'Backlog & Sprints',
       devhub: 'Development VCS Hub',
       webhooks: 'GitHub Webhook Setup',
-      settings: 'Project & Team Settings'
+      projects: 'Projects Hub',
+      settings: 'Project & Team Roles',
+      auth: 'Authentication & Sign In'
     };
 
     function navigateTo(viewKey) {
@@ -1143,10 +1462,19 @@
         if (el) el.classList.toggle('hidden', k !== viewKey);
       });
 
-      // 2. Update Breadcrumb
+      // 2. Hide top header if in Auth view for realistic full-screen login
+      const header = document.getElementById('mainAppHeader');
+      const sidebar = document.getElementById('appSidebar');
+      if (viewKey === 'auth') {
+        sidebar.classList.add('hidden');
+      } else {
+        sidebar.classList.remove('hidden');
+      }
+
+      // 3. Update Breadcrumb
       document.getElementById('currentViewBreadcrumb').innerText = viewBreadcrumbs[viewKey] || viewKey;
 
-      // 3. Update Active Sidebar Tab Styling
+      // 4. Update Active Sidebar Tab Styling
       document.querySelectorAll('.nav-tab-btn').forEach(btn => {
         btn.classList.remove('bg-brand-500/10', 'dark:bg-brand-500/20', 'text-brand-600', 'dark:text-brand-400', 'font-semibold', 'border', 'border-brand-500/20');
         btn.classList.add('text-light-muted', 'dark:text-dark-muted');
@@ -1286,7 +1614,7 @@
       filterBoardCards();
     }
 
-    // Modals
+    // Modals Management
     function openCreateModal() { document.getElementById('createModal').classList.remove('hidden'); document.getElementById('newIssueTitle').focus(); }
     function closeCreateModal() { document.getElementById('createModal').classList.add('hidden'); }
     function submitNewIssue() {
@@ -1296,22 +1624,53 @@
       closeCreateModal();
     }
 
+    function openManualLinkModal() { document.getElementById('manualLinkModal').classList.remove('hidden'); }
+    function closeManualLinkModal() { document.getElementById('manualLinkModal').classList.add('hidden'); }
+
+    function openPayloadInspector(delivId, event, target, hmac) {
+      document.getElementById('inspectDeliveryId').innerText = `Delivery ID: ${delivId} • ${event} • ${target}`;
+      document.getElementById('inspectHmac').innerText = hmac;
+      document.getElementById('payloadModal').classList.remove('hidden');
+    }
+    function closePayloadInspector() { document.getElementById('payloadModal').classList.add('hidden'); }
+
+    function openCreateProjectModal() { document.getElementById('createProjectModal').classList.remove('hidden'); document.getElementById('newProjectName').focus(); }
+    function closeCreateProjectModal() { document.getElementById('createProjectModal').classList.add('hidden'); }
+    function submitNewProject() {
+      const name = document.getElementById('newProjectName').value.trim();
+      const key = document.getElementById('newProjectKey').value.trim().toUpperCase();
+      if (!name || !key) { alert('Please enter both name and key'); return; }
+      alert(`Project Created: ${name} (${key}) with constraint UNIQUE(workspace_id, project_key)`);
+      closeCreateProjectModal();
+    }
+
+    function toggleNotificationDrawer() {
+      document.getElementById('notificationDrawer').classList.toggle('hidden');
+    }
+
     function handleGlobalSearch(e) {
       if (e.key === 'Enter') {
         const q = e.target.value.trim().toLowerCase();
         if (q.includes('101') || q.includes('inbox')) navigateTo('issue');
         else if (q.includes('pr') || q.includes('repo')) navigateTo('devhub');
         else if (q.includes('hook') || q.includes('hmac')) navigateTo('webhooks');
+        else if (q.includes('project')) navigateTo('projects');
         else navigateTo('board');
       }
     }
 
-    // Keyboard Shortcuts: 1-6 for tabs, C, [, ⌘T, ⌘K, ESC
+    // Keyboard Shortcuts: 1-7 for tabs, C, [, ⌘T, ⌘K, ESC
     window.addEventListener('keydown', (e) => {
       const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 't') { e.preventDefault(); toggleTheme(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('globalSearchInput')?.focus(); }
-      else if (e.key === 'Escape') { closeCreateModal(); }
+      else if (e.key === 'Escape') { 
+        closeCreateModal(); 
+        closeManualLinkModal();
+        closePayloadInspector();
+        closeCreateProjectModal();
+        document.getElementById('notificationDrawer').classList.add('hidden');
+      }
       else if (!isInput) {
         if (e.key === 'c') { e.preventDefault(); openCreateModal(); }
         else if (e.key === '[') { e.preventDefault(); toggleSidebar(); }
@@ -1320,7 +1679,8 @@
         else if (e.key === '3') navigateTo('backlog');
         else if (e.key === '4') navigateTo('devhub');
         else if (e.key === '5') navigateTo('webhooks');
-        else if (e.key === '6') navigateTo('settings');
+        else if (e.key === '6') navigateTo('projects');
+        else if (e.key === '7') navigateTo('settings');
       }
     });
 
