@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NexTrack — High-Performance Issue Tracking &amp; Project Intelligence</title>
+<!-- Fonts: Geist and Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-container": "#0d0096",
+            "primary-container": "#8083ff",
+            "surface-container-low": "#131b2e",
+            "primary": "#c0c1ff",
+            "error": "#ffb4ab",
+            "primary-fixed-dim": "#c0c1ff",
+            "on-primary-fixed-variant": "#2f2ebe",
+            "error-container": "#93000a",
+            "surface-bright": "#31394d",
+            "tertiary-fixed-dim": "#4edea3",
+            "secondary-container": "#2f3aa3",
+            "on-surface": "#dae2fd",
+            "primary-fixed": "#e1e0ff",
+            "secondary-fixed": "#e0e0ff",
+            "on-secondary-fixed-variant": "#2f3aa3",
+            "surface-variant": "#2d3449",
+            "tertiary": "#4edea3",
+            "on-error-container": "#ffdad6",
+            "surface-container-highest": "#2d3449",
+            "on-secondary-fixed": "#000767",
+            "outline-variant": "#464554",
+            "surface": "#0b1326",
+            "background": "#0b1326",
+            "inverse-on-surface": "#283044",
+            "tertiary-container": "#00885d",
+            "on-surface-variant": "#c7c4d7",
+            "on-tertiary-fixed-variant": "#005236",
+            "on-secondary-container": "#a8afff",
+            "surface-container-high": "#222a3d",
+            "on-primary": "#1000a9",
+            "on-primary-fixed": "#07006c",
+            "surface-dim": "#0b1326",
+            "on-tertiary": "#003824",
+            "on-background": "#dae2fd",
+            "inverse-primary": "#494bd6",
+            "surface-tint": "#c0c1ff",
+            "on-error": "#690005",
+            "surface-container-lowest": "#060e20",
+            "tertiary-fixed": "#6ffbbe",
+            "secondary-fixed-dim": "#bdc2ff",
+            "secondary": "#bdc2ff",
+            "on-tertiary-container": "#000703",
+            "surface-container": "#171f33",
+            "on-tertiary-fixed": "#002113",
+            "outline": "#908fa0",
+            "inverse-surface": "#dae2fd",
+            "on-secondary": "#131e8c"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin-md": "1.5rem",
+            "space-lg": "1rem",
+            "gutter-lg": "1.5rem",
+            "space-xl": "1.5rem",
+            "space-md": "0.75rem",
+            "space-sm": "0.5rem",
+            "gutter": "1rem",
+            "margin": "1rem",
+            "margin-lg": "2rem",
+            "space-xs": "0.25rem"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "label-sm": ["Geist"],
+            "headline-md": ["Geist"],
+            "display-lg": ["Geist"],
+            "code-sm": ["Geist"],
+            "label-md": ["Geist"],
+            "body-lg": ["Inter"],
+            "headline-lg": ["Geist"],
+            "headline-xl": ["Geist"]
+          },
+          "fontSize": {
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.006em", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "code-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.011em", "fontWeight": "400" }],
+            "headline-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-xl": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.025em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 18px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Custom glow and glass token overrides for dark auth terminal */
+    .glass-panel {
+      background: rgba(23, 31, 51, 0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(70, 69, 84, 0.35);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(70, 69, 84, 0.45);
+    }
+    .brand-glow {
+      box-shadow: 0 0 24px -4px rgba(128, 131, 255, 0.25);
+    }
+    .input-focus-ring:focus-within {
+      border-color: #8083ff;
+      box-shadow: 0 0 0 1px #8083ff, 0 0 14px rgba(128, 131, 255, 0.2);
+    }
+    /* Pulse glow */
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 0.9; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.96); }
+    }
+    .pulse-indicator {
+      animation: subtlePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container relative overflow-x-hidden">
+<!-- Atmospheric Background Gradients -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute -top-[20%] -left-[10%] w-[650px] h-[650px] rounded-full bg-secondary-container/20 blur-[130px]"></div>
+<div class="absolute top-[40%] right-[-5%] w-[600px] h-[600px] rounded-full bg-primary-container/10 blur-[140px]"></div>
+<div class="absolute bottom-[-10%] left-[30%] w-[500px] h-[500px] rounded-full bg-tertiary-container/10 blur-[150px]"></div>
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(128,131,255,0.06),rgba(6,14,32,0.9))]"></div>
+</div>
+<!-- Shared Component: TopNavBar -->
+<header class="w-full fixed top-0 z-50 px-6 h-16 flex items-center justify-between bg-surface/80 dark:bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<!-- Brand Anchor -->
+<a class="font-headline-md text-headline-md tracking-tight text-on-surface dark:text-on-surface flex items-center gap-2 group" href="#">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high border border-outline-variant/60 flex items-center justify-center relative overflow-hidden group-hover:border-primary-container transition-colors duration-150">
+<div class="absolute inset-0 bg-gradient-to-tr from-primary-container to-secondary-container opacity-20"></div>
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<span class="font-headline-md text-headline-md font-semibold text-on-surface">NexTrack</span>
+<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] uppercase font-label-sm tracking-wider bg-surface-container text-tertiary border border-tertiary/30">Enterprise Agile</span>
+</a>
+<!-- Top Navigation Links -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">Product</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">Features</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">Enterprise</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">Changelog</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">Documentation</a>
+</nav>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-3">
+<button aria-label="Documentation Help" class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 flex items-center justify-center transition-all duration-150" type="button">
+<span class="material-symbols-outlined">help</span>
+</button>
+<button aria-label="Toggle Theme" class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 flex items-center justify-center transition-all duration-150" type="button">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<div class="h-4 w-[1px] bg-outline-variant/30 hidden sm:block"></div>
+<button class="hidden sm:inline-flex font-label-md text-label-md text-primary dark:text-primary font-semibold px-3 py-1.5 rounded-lg hover:bg-surface-container-high/40 transition-all duration-150 active:scale-[0.98]" id="navSignInBtn" type="button">
+        Sign In
+      </button>
+<a class="font-label-md text-label-md bg-primary-container text-on-primary-container font-semibold px-3.5 py-1.5 rounded-lg hover:brightness-110 shadow-sm transition-all duration-150 active:scale-[0.98] flex items-center gap-1.5" href="#auth-card">
+<span>Launch Console</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</header>
+<!-- Main Panoramic Content Canvas -->
+<main class="flex-1 w-full max-w-[1440px] mx-auto pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col justify-center">
+<!-- Top System Telemetry Bar (Subtle Command Line Banner) -->
+<div class="w-full flex flex-wrap items-center justify-between gap-3 mb-8 px-4 py-2.5 rounded-xl bg-surface-container-lowest/80 border border-outline-variant/30 backdrop-blur-md text-on-surface-variant">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary pulse-indicator"></span>
+<span class="font-label-sm text-label-sm text-tertiary">CLUSTER-US-EAST-01 ACTIVE</span>
+</div>
+<span class="text-outline-variant/40">•</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant hidden sm:inline">Engine v4.12.0 • WebAuthn Ed25519 Enabled</span>
+</div>
+<div class="flex items-center gap-4 text-xs font-label-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-sm">speed</span>
+<span class="text-on-surface font-medium">&lt; 42ms</span>
+<span class="text-on-surface-variant/70">Sync Latency</span>
+</div>
+<div class="hidden md:flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm">verified_user</span>
+<span class="text-on-surface">SOC2 Type II</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-sm">groups</span>
+<span class="text-on-surface font-medium">12k+</span>
+<span class="text-on-surface-variant/70">Active Dev Teams</span>
+</div>
+</div>
+</div>
+<!-- Split Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- LEFT COLUMN: The Interactive Authentication Terminal (Cols: 5) -->
+<section class="lg:col-span-5 w-full glass-panel rounded-2xl p-6 sm:p-8 border border-outline-variant/40 shadow-2xl relative" id="auth-card">
+<div class="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/50 text-[10px] font-label-sm tracking-wider uppercase text-primary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+          SECURE GATEWAY • NEXTRACK AUTH
+        </div>
+<!-- Terminal Header -->
+<div class="mb-6 pt-1">
+<div class="flex items-center justify-between mb-2">
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight font-semibold flex items-center gap-2">
+              Workspace Access
+            </h1>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            High-performance issue tracking and project intelligence for modern engineering cohorts.
+          </p>
+</div>
+<!-- Segmented Tab Controls: Sign In vs Create Account -->
+<div class="bg-surface-container-lowest p-1 rounded-xl border border-outline-variant/40 flex items-center mb-6">
+<button class="flex-1 py-2 text-center rounded-lg font-label-md text-label-md font-semibold transition-all duration-150 bg-surface-container-high text-on-surface shadow-sm border border-outline-variant/40 flex items-center justify-center gap-2" id="tab-signin" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">login</span>
+<span>Sign In</span>
+</button>
+<button class="flex-1 py-2 text-center rounded-lg font-label-md text-label-md font-medium transition-all duration-150 text-on-surface-variant hover:text-on-surface hover:bg-surface-container/40 flex items-center justify-center gap-2" id="tab-register" type="button">
+<span class="material-symbols-outlined text-[16px]">how_to_reg</span>
+<span>Create Account</span>
+</button>
+</div>
+<!-- FORM 1: SIGN IN VIEW -->
+<form class="space-y-4" id="form-signin" onsubmit="event.preventDefault(); handleAuthSubmit('signin');">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="signin-email">
+              Work Email Address
+            </label>
+<div class="relative rounded-xl border border-outline-variant/50 bg-surface-container-lowest input-focus-ring transition-all">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">alternate_email</span>
+</div>
+<input class="w-full pl-10 pr-4 py-2.5 bg-transparent border-0 rounded-xl text-on-surface placeholder:text-outline/60 font-body-md text-body-md focus:ring-0 focus:outline-none" id="signin-email" placeholder="name@company.com" required="" type="email"/>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="block font-label-sm text-label-sm text-on-surface-variant" for="signin-password">
+                Password
+              </label>
+<a class="font-label-sm text-label-sm text-primary hover:underline hover:text-primary-fixed transition-colors" href="#">
+                Forgot password?
+              </a>
+</div>
+<div class="relative rounded-xl border border-outline-variant/50 bg-surface-container-lowest input-focus-ring transition-all">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</div>
+<input class="w-full pl-10 pr-10 py-2.5 bg-transparent border-0 rounded-xl text-on-surface placeholder:text-outline/60 font-body-md text-body-md focus:ring-0 focus:outline-none" id="signin-password" placeholder="••••••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface transition-colors" id="toggle-signin-password" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input checked="" class="w-4 h-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0 focus:ring-offset-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Remember me for 30 days</span>
+</label>
+<span class="font-code-sm text-code-sm text-tertiary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+              2FA Ready
+            </span>
+</div>
+<button class="w-full py-3 px-4 rounded-xl bg-primary-container text-on-primary-container font-label-md text-label-md font-semibold tracking-wide flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all brand-glow cursor-pointer mt-2" type="submit">
+<span>Sign In to NexTrack</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+<!-- FORM 2: CREATE ACCOUNT VIEW (Hidden by default, activated via tab) -->
+<form class="space-y-3.5 hidden" id="form-register" onsubmit="event.preventDefault(); handleAuthSubmit('register');">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1" for="reg-name">
+              Full Name
+            </label>
+<div class="relative rounded-xl border border-outline-variant/50 bg-surface-container-lowest input-focus-ring transition-all">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+</div>
+<input class="w-full pl-10 pr-4 py-2 bg-transparent border-0 rounded-xl text-on-surface placeholder:text-outline/60 font-body-md text-body-md focus:ring-0 focus:outline-none" id="reg-name" placeholder="Alex Vance" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1" for="reg-email">
+              Work Email Address
+            </label>
+<div class="relative rounded-xl border border-outline-variant/50 bg-surface-container-lowest input-focus-ring transition-all">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+</div>
+<input class="w-full pl-10 pr-4 py-2 bg-transparent border-0 rounded-xl text-on-surface placeholder:text-outline/60 font-body-md text-body-md focus:ring-0 focus:outline-none" id="reg-email" placeholder="alex@acme-corp.com" type="email"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1" for="reg-workspace">
+              Workspace URL Slug
+            </label>
+<div class="flex rounded-xl border border-outline-variant/50 bg-surface-container-lowest input-focus-ring overflow-hidden">
+<span class="px-3 py-2 bg-surface-container text-on-surface-variant/80 font-code-sm text-code-sm flex items-center border-r border-outline-variant/40">
+                nextrack.io/workspace/
+              </span>
+<input class="flex-1 px-3 py-2 bg-transparent border-0 text-on-surface font-code-sm text-code-sm focus:ring-0 focus:outline-none placeholder:text-outline/60" id="reg-workspace" placeholder="acme-eng" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1" for="reg-password">
+              Password
+            </label>
+<div class="relative rounded-xl border border-outline-variant/50 bg-surface-container-lowest input-focus-ring transition-all">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">key</span>
+</div>
+<input class="w-full pl-10 pr-10 py-2 bg-transparent border-0 rounded-xl text-on-surface placeholder:text-outline/60 font-body-md text-body-md focus:ring-0 focus:outline-none" id="reg-password" placeholder="At least 12 characters" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface transition-colors" id="toggle-reg-password" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+<!-- Password Strength Visual Bar -->
+<div class="mt-2 space-y-1.5">
+<div class="grid grid-cols-4 gap-1.5 h-1.5">
+<div class="h-full rounded-full bg-tertiary"></div>
+<div class="h-full rounded-full bg-tertiary"></div>
+<div class="h-full rounded-full bg-tertiary"></div>
+<div class="h-full rounded-full bg-outline-variant/30"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] font-label-sm text-on-surface-variant">
+<span class="text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">shield</span>
+                  Enterprise Strong
+                </span>
+<span class="text-outline">12+ chars, special &amp; digits</span>
+</div>
+</div>
+</div>
+<button class="w-full py-3 px-4 rounded-xl bg-primary-container text-on-primary-container font-label-md text-label-md font-semibold tracking-wide flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all brand-glow cursor-pointer mt-2" type="submit">
+<span>Create Workspace &amp; Account</span>
+<span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+</button>
+</form>
+<!-- 1-Click Demo Sandbox Evaluator Section -->
+<div class="mt-6 pt-5 border-t border-outline-variant/30">
+<div class="flex items-center justify-between mb-2.5">
+<span class="font-label-sm text-label-sm text-primary flex items-center gap-1.5 uppercase tracking-wider font-semibold">
+<span class="material-symbols-outlined text-[15px]">bolt</span>
+              1-Click Demo Evaluator Access
+            </span>
+<span class="text-[10px] font-code-sm text-tertiary bg-tertiary/10 border border-tertiary/30 px-2 py-0.5 rounded">NO PW REQUIRED</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+<button class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-surface-container border border-outline-variant/50 hover:border-primary-container/80 hover:bg-surface-container-high transition-all text-left group" id="demo-lead" type="button">
+<div class="w-7 h-7 rounded-lg bg-primary-container/20 text-primary flex items-center justify-center text-xs font-semibold group-hover:scale-105 transition-transform">
+                LE
+              </div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-on-surface truncate font-medium">Lead Engineer</div>
+<div class="font-code-sm text-[10px] text-on-surface-variant truncate">alex@nextrack.internal</div>
+</div>
+</button>
+<button class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-surface-container border border-outline-variant/50 hover:border-secondary-container hover:bg-surface-container-high transition-all text-left group" id="demo-admin" type="button">
+<div class="w-7 h-7 rounded-lg bg-secondary-container/30 text-secondary flex items-center justify-center text-xs font-semibold group-hover:scale-105 transition-transform">
+                WA
+              </div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-on-surface truncate font-medium">Workspace Admin</div>
+<div class="font-code-sm text-[10px] text-on-surface-variant truncate">admin@nextrack.internal</div>
+</div>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-outline/80 mt-2 text-center text-[11px]">
+            Instant access to populated multi-stream kanban boards, live velocity burndown, and release trees.
+          </p>
+</div>
+<!-- Enterprise SSO Federation Divider -->
+<div class="mt-6 pt-4 border-t border-outline-variant/30">
+<div class="relative flex py-1 items-center justify-center mb-4">
+<div class="flex-grow border-t border-outline-variant/30"></div>
+<span class="flex-shrink mx-3 text-on-surface-variant/70 text-[11px] font-label-sm uppercase tracking-wider">
+              Or continue with enterprise SSO
+            </span>
+<div class="flex-grow border-t border-outline-variant/30"></div>
+</div>
+<div class="grid grid-cols-3 gap-2.5">
+<!-- GitHub -->
+<button class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-surface-container border border-outline-variant/50 hover:border-primary-container/70 hover:bg-surface-container-high text-on-surface text-xs font-label-md transition-all active:scale-[0.98]" type="button">
+<svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
+<path clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" fill-rule="evenodd"></path>
+</svg>
+<span>GitHub</span>
+</button>
+<!-- Google Workspace -->
+<button class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-surface-container border border-outline-variant/50 hover:border-primary-container/70 hover:bg-surface-container-high text-on-surface text-xs font-label-md transition-all active:scale-[0.98]" type="button">
+<svg class="w-4 h-4" viewbox="0 0 24 24">
+<path d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z" fill="#EA4335"></path>
+<path d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z" fill="#4285F4"></path>
+<path d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z" fill="#FBBC05"></path>
+<path d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 20.4 7.5 23 12 23z" fill="#34A853"></path>
+</svg>
+<span>Google</span>
+</button>
+<!-- Okta / SAML -->
+<button class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-surface-container border border-outline-variant/50 hover:border-primary-container/70 hover:bg-surface-container-high text-on-surface text-xs font-label-md transition-all active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[16px] text-tertiary">key_vertical</span>
+<span>SAML / Okta</span>
+</button>
+</div>
+</div>
+</section>
+<!-- RIGHT COLUMN: The 'NexTrack Intelligence Showcase' (Cols: 7) -->
+<section class="lg:col-span-7 space-y-5">
+<!-- Showcase Headline Banner -->
+<div class="flex items-center justify-between px-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary">Live Workspace Preview</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-semibold tracking-tight">
+              Mission Control for Agile High-Flyers
+            </h2>
+</div>
+<div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container border border-outline-variant/40 text-xs font-code-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm text-tertiary">sync</span>
+<span>Live Stream Connected</span>
+</div>
+</div>
+<!-- WIDGET 1: Interactive Sprint Velocity & Burndown Preview Card -->
+<div class="glass-card rounded-2xl p-5 border border-outline-variant/50 shadow-xl relative overflow-hidden">
+<!-- Top Row: Sprint Info & Quick Stats -->
+<div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary-container/20 border border-primary-container/40 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-xl">insights</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold">Sprint 42: Edge Engine</h3>
+<span class="px-2 py-0.5 rounded text-[11px] font-label-sm bg-tertiary/15 text-tertiary border border-tertiary/30">Active • 4 days left</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Target release: v4.12.0 stable core rollout</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-lowest px-4 py-2 rounded-xl border border-outline-variant/30">
+<div class="text-right">
+<div class="font-code-sm text-code-sm text-on-surface font-semibold">34 / 38 pts</div>
+<div class="font-label-sm text-[10px] text-tertiary">89% Velocity</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center relative">
+<svg class="w-10 h-10 -rotate-90">
+<circle cx="20" cy="20" fill="none" r="16" stroke="rgba(70, 69, 84, 0.4)" stroke-width="3"></circle>
+<circle cx="20" cy="20" fill="none" r="16" stroke="#4edea3" stroke-dasharray="100" stroke-dashoffset="11" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<span class="absolute text-[10px] font-code-sm text-on-surface">89%</span>
+</div>
+</div>
+</div>
+<!-- Synthetic Burndown Sparkline Visual -->
+<div class="mt-4 pt-1">
+<div class="flex items-center justify-between text-xs font-label-sm text-on-surface-variant mb-2">
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-0.5 bg-outline"></span> Ideal Burndown
+                <span class="w-2.5 h-1 bg-primary ml-2 rounded-full"></span> Actual Completed
+              </span>
+<span class="font-code-sm text-tertiary font-medium">Burn rate: +1.4 pts/day above projection</span>
+</div>
+<div class="h-20 w-full relative flex items-end">
+<!-- SVG chart curves -->
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 400 80">
+<defs>
+<lineargradient id="burndownGrad" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#8083ff" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#8083ff" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- Reference Guide Gridlines -->
+<line stroke="rgba(70, 69, 84, 0.2)" stroke-dasharray="4 4" x1="0" x2="400" y1="10" y2="10"></line>
+<line stroke="rgba(70, 69, 84, 0.2)" stroke-dasharray="4 4" x1="0" x2="400" y1="45" y2="45"></line>
+<line stroke="rgba(70, 69, 84, 0.2)" x1="0" x2="400" y1="75" y2="75"></line>
+<!-- Ideal line -->
+<line stroke="#908fa0" stroke-dasharray="4 4" stroke-width="1.5" x1="10" x2="390" y1="12" y2="75"></line>
+<!-- Actual Burn curve with gradient fill -->
+<path d="M 10 12 L 60 18 L 120 22 L 180 38 L 240 46 L 310 65 L 350 70 L 390 73 L 390 80 L 10 80 Z" fill="url(#burndownGrad)"></path>
+<path d="M 10 12 L 60 18 L 120 22 L 180 38 L 240 46 L 310 65 L 350 70 L 390 73" fill="none" stroke="#c0c1ff" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Dot marker at current point -->
+<circle cx="350" cy="70" fill="#6ffbbe" r="4" stroke="#060e20" stroke-width="2"></circle>
+</svg>
+</div>
+</div>
+</div>
+<!-- WIDGET 2: Live Agile Issue Kanban Stream Card -->
+<div class="glass-card rounded-2xl p-5 border border-outline-variant/50 shadow-xl space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-lg">view_kanban</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold">Priority Board Feed</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-code-sm bg-surface-container text-on-surface-variant border border-outline-variant/30">5 IN FLIGHT</span>
+</div>
+<a class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1" href="#">
+<span>Inspect All Lanes</span>
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+<!-- Ticket 1 (Critical) -->
+<div class="p-3.5 rounded-xl bg-surface-container-high/60 border border-outline-variant/40 hover:border-primary-container/80 transition-all group">
+<div class="flex items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[11px] font-code-sm bg-primary-container/25 text-primary border border-primary-container/40">
+                  NEX-1042
+                </span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-sm uppercase tracking-wide bg-error-container/40 text-error border border-error/40 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">emergency</span>
+                  Critical
+                </span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-sm bg-surface-container text-on-surface-variant">Security</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-code-sm text-on-surface-variant">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-tertiary">check_circle</span>
+                  4/4 tasks
+                </span>
+</div>
+</div>
+<div class="font-body-md text-body-md text-on-surface font-medium mb-2.5 group-hover:text-primary transition-colors">
+              Migrate Auth Infrastructure to Ed25519 WebAuthn &amp; Hardware Passkeys
+            </div>
+<div class="flex items-center justify-between pt-1 text-xs border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-secondary-container text-secondary flex items-center justify-center font-bold text-[10px]">
+                  SV
+                </div>
+<span class="text-on-surface-variant font-label-sm">Sarah Vance (Lead SecOps)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-code-sm bg-surface-container-lowest text-tertiary">Ready for PR Review</span>
+<span class="font-code-sm text-outline">5 pts</span>
+</div>
+</div>
+</div>
+<!-- Ticket 2 (In Progress) -->
+<div class="p-3.5 rounded-xl bg-surface-container-high/60 border border-outline-variant/40 hover:border-primary-container/80 transition-all group">
+<div class="flex items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[11px] font-code-sm bg-secondary-container/40 text-secondary border border-secondary/40">
+                  NEX-1045
+                </span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-sm uppercase tracking-wide bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">flag</span>
+                  High
+                </span>
+<span class="px-2 py-0.5 rounded text-[10px] font-label-sm bg-surface-container text-on-surface-variant">Core Engine</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-code-sm text-on-surface-variant">
+<span class="flex items-center gap-1 text-amber-300">
+<span class="material-symbols-outlined text-[14px]">hourglass_top</span>
+                  In Progress
+                </span>
+</div>
+</div>
+<div class="font-body-md text-body-md text-on-surface font-medium mb-2.5 group-hover:text-primary transition-colors">
+              Optimize sprint burndown aggregation query latency below 45ms across 100k ticket datasets
+            </div>
+<div class="flex items-center justify-between pt-1 text-xs border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-[10px]">
+                  MR
+                </div>
+<span class="text-on-surface-variant font-label-sm">Marcus Ray (Database Guild)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-code-sm bg-surface-container-lowest text-on-surface">Branch: feat/olap-index</span>
+<span class="font-code-sm text-outline">8 pts</span>
+</div>
+</div>
+</div>
+</div>
+<!-- WIDGET 3: Real-time Team Activity Ticker -->
+<div class="glass-card rounded-2xl p-4 border border-outline-variant/50 shadow-xl">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+              Live Audit &amp; Event Stream
+            </span>
+<span class="font-code-sm text-code-sm text-outline">Streaming SSE</span>
+</div>
+<div class="space-y-2.5 font-body-sm text-body-sm">
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-lowest/60 border border-outline-variant/20">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="material-symbols-outlined text-primary text-base">call_merge</span>
+<span class="text-on-surface truncate"><strong class="text-primary font-medium">@sarah.dev</strong> merged PR #412 into <code class="font-code-sm text-xs bg-surface-container px-1 py-0.5 rounded text-secondary">main</code></span>
+</div>
+<span class="font-code-sm text-xs text-outline shrink-0 ml-2">2m ago</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-lowest/60 border border-outline-variant/20">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="material-symbols-outlined text-tertiary text-base">verified</span>
+<span class="text-on-surface truncate"><strong class="text-tertiary font-medium">SOC2 Compliance Guardian:</strong> Automated Nightly Scan 0 Vulnerabilities</span>
+</div>
+<span class="font-code-sm text-xs text-outline shrink-0 ml-2">14m ago</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Shared Component: Footer -->
+<footer class="w-full py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-outline-variant/30 bg-surface-container-lowest dark:bg-surface-container-lowest relative z-20">
+<div class="flex items-center gap-3">
+<span class="font-label-md text-label-md text-on-surface dark:text-on-surface font-semibold flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+        NexTrack
+      </span>
+<span class="text-outline-variant/60">•</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant dark:text-on-surface-variant">
+        © 2025 NexTrack Technologies Inc. Systems Operational. SOC2 Type II Certified.
+      </p>
+</div>
+<div class="flex flex-wrap items-center gap-4 text-xs font-label-sm">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">Security</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">Terms of Service</a>
+<a class="text-tertiary dark:text-tertiary font-medium hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150 flex items-center gap-1" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+        Status: 99.99% Uptime
+      </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors duration-150" href="#">System Audit Log</a>
+</div>
+</footer>
+<!-- Interactive JavaScript for Tab Switching, Passwords, and Demo Fillers -->
+<script>
+    // Tab Elements
+    const tabSignIn = document.getElementById('tab-signin');
+    const tabRegister = document.getElementById('tab-register');
+    const formSignIn = document.getElementById('form-signin');
+    const formRegister = document.getElementById('form-register');
+
+    // Nav header sign in button anchor
+    const navSignInBtn = document.getElementById('navSignInBtn');
+
+    function switchToSignIn() {
+      tabSignIn.className = "flex-1 py-2 text-center rounded-lg font-label-md text-label-md font-semibold transition-all duration-150 bg-surface-container-high text-on-surface shadow-sm border border-outline-variant/40 flex items-center justify-center gap-2";
+      tabRegister.className = "flex-1 py-2 text-center rounded-lg font-label-md text-label-md font-medium transition-all duration-150 text-on-surface-variant hover:text-on-surface hover:bg-surface-container/40 flex items-center justify-center gap-2";
+      formSignIn.classList.remove('hidden');
+      formRegister.classList.add('hidden');
+    }
+
+    function switchToRegister() {
+      tabRegister.className = "flex-1 py-2 text-center rounded-lg font-label-md text-label-md font-semibold transition-all duration-150 bg-surface-container-high text-on-surface shadow-sm border border-outline-variant/40 flex items-center justify-center gap-2";
+      tabSignIn.className = "flex-1 py-2 text-center rounded-lg font-label-md text-label-md font-medium transition-all duration-150 text-on-surface-variant hover:text-on-surface hover:bg-surface-container/40 flex items-center justify-center gap-2";
+      formRegister.classList.remove('hidden');
+      formSignIn.classList.add('hidden');
+    }
+
+    if (tabSignIn && tabRegister) {
+      tabSignIn.addEventListener('click', switchToSignIn);
+      tabRegister.addEventListener('click', switchToRegister);
+    }
+
+    if (navSignInBtn) {
+      navSignInBtn.addEventListener('click', () => {
+        switchToSignIn();
+        document.getElementById('signin-email').focus();
+      });
+    }
+
+    // Toggle Password Visibility (Sign In)
+    const toggleSignInPw = document.getElementById('toggle-signin-password');
+    const signInPwInput = document.getElementById('signin-password');
+    if (toggleSignInPw && signInPwInput) {
+      toggleSignInPw.addEventListener('click', () => {
+        const isPw = signInPwInput.type === 'password';
+        signInPwInput.type = isPw ? 'text' : 'password';
+        toggleSignInPw.querySelector('span').textContent = isPw ? 'visibility_off' : 'visibility';
+      });
+    }
+
+    // Toggle Password Visibility (Register)
+    const toggleRegPw = document.getElementById('toggle-reg-password');
+    const regPwInput = document.getElementById('reg-password');
+    if (toggleRegPw && regPwInput) {
+      toggleRegPw.addEventListener('click', () => {
+        const isPw = regPwInput.type === 'password';
+        regPwInput.type = isPw ? 'text' : 'password';
+        toggleRegPw.querySelector('span').textContent = isPw ? 'visibility_off' : 'visibility';
+      });
+    }
+
+    // 1-Click Demo Sandbox Pre-fill
+    const demoLeadBtn = document.getElementById('demo-lead');
+    const demoAdminBtn = document.getElementById('demo-admin');
+
+    if (demoLeadBtn) {
+      demoLeadBtn.addEventListener('click', () => {
+        switchToSignIn();
+        const emailField = document.getElementById('signin-email');
+        const pwField = document.getElementById('signin-password');
+        emailField.value = 'alex@nextrack.internal';
+        pwField.value = '• • • • • • • • • • • •';
+        emailField.classList.add('ring-2', 'ring-primary-container');
+        setTimeout(() => emailField.classList.remove('ring-2', 'ring-primary-container'), 1200);
+      });
+    }
+
+    if (demoAdminBtn) {
+      demoAdminBtn.addEventListener('click', () => {
+        switchToSignIn();
+        const emailField = document.getElementById('signin-email');
+        const pwField = document.getElementById('signin-password');
+        emailField.value = 'admin@nextrack.internal';
+        pwField.value = '• • • • • • • • • • • •';
+        emailField.classList.add('ring-2', 'ring-secondary-container');
+        setTimeout(() => emailField.classList.remove('ring-2', 'ring-secondary-container'), 1200);
+      });
+    }
+
+    // Simple visual toast simulation for form submit
+    function handleAuthSubmit(type) {
+      const btn = event.target.querySelector('button[type="submit"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> Authenticating Session...`;
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[18px] text-tertiary">check_circle</span> Verified • Redirecting to Boards...`;
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }, 1800);
+      }, 900);
+    }
+  </script>
+</body></html>

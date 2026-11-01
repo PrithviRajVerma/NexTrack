@@ -1,0 +1,18 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build and runtime outputs
+target/
+build/
+dist/
+node_modules/
+*.log

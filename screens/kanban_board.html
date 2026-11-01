@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NexTrack - Core Monolith Platform (NEXT) - Kanban Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error": "#690005",
+            "surface-container-low": "#131b2e",
+            "surface-container-high": "#222a3d",
+            "on-surface": "#dae2fd",
+            "tertiary-container": "#00885d",
+            "background": "#0b1326",
+            "on-secondary": "#131e8c",
+            "secondary-fixed-dim": "#bdc2ff",
+            "on-tertiary": "#003824",
+            "surface-container-lowest": "#060e20",
+            "on-secondary-fixed": "#000767",
+            "secondary-fixed": "#e0e0ff",
+            "inverse-primary": "#494bd6",
+            "on-primary-fixed-variant": "#2f2ebe",
+            "error": "#ffb4ab",
+            "on-tertiary-fixed": "#002113",
+            "on-background": "#dae2fd",
+            "outline": "#908fa0",
+            "primary-container": "#8083ff",
+            "secondary-container": "#2f3aa3",
+            "outline-variant": "#464554",
+            "primary": "#c0c1ff",
+            "primary-fixed-dim": "#c0c1ff",
+            "on-secondary-container": "#a8afff",
+            "on-primary-fixed": "#07006c",
+            "tertiary-fixed": "#6ffbbe",
+            "secondary": "#bdc2ff",
+            "surface-variant": "#2d3449",
+            "surface-container": "#171f33",
+            "on-error-container": "#ffdad6",
+            "on-tertiary-container": "#000703",
+            "error-container": "#93000a",
+            "primary-fixed": "#e1e0ff",
+            "on-secondary-fixed-variant": "#2f3aa3",
+            "surface-bright": "#31394d",
+            "on-surface-variant": "#c7c4d7",
+            "tertiary": "#4edea3",
+            "surface-container-highest": "#2d3449",
+            "on-tertiary-fixed-variant": "#005236",
+            "on-primary-container": "#0d0096",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-primary": "#1000a9",
+            "surface-tint": "#c0c1ff",
+            "inverse-surface": "#dae2fd",
+            "surface-dim": "#0b1326",
+            "surface": "#0b1326",
+            "inverse-on-surface": "#283044"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-lg": "1rem",
+            "space-xl": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "margin-lg": "2rem",
+            "margin-md": "1.5rem",
+            "space-md": "0.75rem",
+            "gutter-lg": "1.5rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "label-md": ["Geist"],
+            "code-sm": ["Geist"],
+            "headline-xl": ["Geist"],
+            "headline-md": ["Geist"],
+            "body-lg": ["Inter"],
+            "display-lg": ["Geist"],
+            "body-sm": ["Inter"],
+            "headline-lg": ["Geist"],
+            "body-md": ["Inter"],
+            "label-sm": ["Geist"]
+          },
+          "fontSize": {
+            "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "code-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-xl": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.025em", "fontWeight": "600" }],
+            "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.011em", "fontWeight": "400" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.006em", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<header class="w-full fixed top-0 z-50 px-6 h-16 flex items-center justify-between bg-surface/80 dark:bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-6">
+<div class="font-headline-md text-headline-md tracking-tight text-on-surface dark:text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">hub</span>
+        NexTrack
+      </div>
+<nav class="hidden md:flex items-center gap-1">
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant dark:text-on-surface-variant transition-colors duration-150 hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high/40 text-label-md" href="#">Product</a>
+<a class="px-3 py-1.5 rounded-lg text-primary dark:text-primary font-semibold text-label-md" href="#">Features</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant dark:text-on-surface-variant transition-colors duration-150 hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high/40 text-label-md" href="#">Enterprise</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant dark:text-on-surface-variant transition-colors duration-150 hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high/40 text-label-md" href="#">Changelog</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant dark:text-on-surface-variant transition-colors duration-150 hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high/40 text-label-md" href="#">Documentation</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<!-- Workspace Selector -->
+<div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-container border border-outline-variant/40">
+<img class="w-5 h-5 rounded-full object-cover" data-alt="A detailed high resolution product avatar graphic representing Acme Cloud Engineering with crisp vector typography and glowing accents inside a dark corporate theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWkmyV0m4AZxKVS-MjA3zftK3zVTBGISmV9ADUU-xGwf4EEpuWM9ZHWT7DVQwbWD7AtTVW-kWOv9ZdCn_1RgOvei5p3-B9WADZP0lqeKDbVO9VXOMyvwpvj_1rsancKmyLWwJCOYPKl1q6jDvi_cxL2VWdtv_xPofm5ulM82knSATr3_0J0uOGsVBcYyPYxwLO3V2_xG1utiE9-psXPNG3rcUNqSA-SbpULb5HkXM6Asja-ww3RQQHnhxdPwogQFwSatAzpI2JLvGv"/>
+<span class="text-label-md text-on-surface font-medium">Acme Cloud</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
+</div>
+<div class="relative hidden sm:block">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">search</span>
+</span>
+<input class="bg-surface-container-low text-on-surface placeholder-outline text-body-sm pl-9 pr-4 py-1.5 rounded-xl border border-outline-variant/50 focus:border-primary focus:ring-1 focus:ring-primary w-48 lg:w-64 transition-all" placeholder="Search issues, epics..." type="text"/>
+</div>
+<button aria-label="Help & Documentation" class="p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-lg">help</span>
+</button>
+<button aria-label="Toggle Dark Mode" class="p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-lg">dark_mode</span>
+</button>
+<div class="h-5 w-[1px] bg-outline-variant/40 mx-1"></div>
+<button class="flex items-center gap-2 p-1 rounded-full hover:bg-surface-container-high transition-colors">
+<img class="w-8 h-8 rounded-full border border-primary/40 object-cover" data-alt="Professional studio portrait of a senior software engineer in dark mode environment with cool blue rim lighting and subtle technological background elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzi1ehs5xQIhh3PUXOjyAZA06PdA6yGLZU7RRkG22QQgseuRi1Q_xqfqJT91Ty5JiPFoFW5H21CTuPS6LINW09pgncjipriCMsr8KFxij4IwLEuXZUqaZqwfkzv8j1wpSIhQnhAliP4TfYEW8dOdSKeaB-qGW2KlFtgi-pIMKSdptOrip_paJdH3veFarMK0_MIHsBYmv8SHjVqwLh0bEfQ6l2PJE8XW8TAOTsoiOTDQJGFG5U62ZhcsKeXKDeQQQi-l7PWabR5hxd"/>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 pt-24 pb-16 px-4 md:px-8 max-w-[1600px] w-full mx-auto flex flex-col gap-6">
+<!-- Sub-header & Breadcrumb -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-2 text-body-sm text-on-surface-variant">
+<span>Acme Cloud</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-medium">NEXT</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-on-surface">Active Board</span>
+</div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-low/60 backdrop-blur-md p-4 rounded-xl border border-outline-variant/30">
+<div class="flex flex-col md:flex-row md:items-center gap-6">
+<div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface">Core Monolith Platform</h1>
+<p class="text-body-sm text-on-surface-variant">Sprint 14 - Q4 Sprint • High velocity delivery stream</p>
+</div>
+<!-- Sprint Indicator & Progress -->
+<div class="flex items-center gap-3 bg-surface-container p-2.5 rounded-lg border border-outline-variant/30">
+<div class="flex flex-col">
+<div class="flex justify-between items-center gap-4 text-label-sm mb-1">
+<span class="text-primary font-semibold">Sprint 14 Active</span>
+<span class="text-on-surface-variant">12 days remaining</span>
+</div>
+<div class="w-36 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[65%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-container text-on-primary px-4 py-2 rounded-xl text-label-md font-semibold transition-all shadow-sm active:scale-[0.98]">
+<span class="material-symbols-outlined text-sm">add</span>
+            Create Issue
+          </button>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="flex flex-wrap items-center justify-between gap-4 py-2">
+<div class="flex flex-wrap items-center gap-3">
+<!-- Quick Search -->
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+</span>
+<input class="bg-surface-container-low text-on-surface placeholder-outline text-body-sm pl-9 pr-4 py-1.5 rounded-xl border border-outline-variant/50 focus:border-primary w-44" placeholder="Filter board..." type="text"/>
+</div>
+<!-- Type filter chips -->
+<div class="flex items-center bg-surface-container p-1 rounded-xl border border-outline-variant/30">
+<button class="px-3 py-1 rounded-lg text-label-md bg-surface-container-high text-on-surface font-medium shadow-sm">All</button>
+<button class="px-3 py-1 rounded-lg text-label-md text-on-surface-variant hover:text-on-surface transition-colors">Bug</button>
+<button class="px-3 py-1 rounded-lg text-label-md text-on-surface-variant hover:text-on-surface transition-colors">Task</button>
+<button class="px-3 py-1 rounded-lg text-label-md text-on-surface-variant hover:text-on-surface transition-colors">Story</button>
+</div>
+<!-- Assignee Stack -->
+<div class="flex items-center -space-x-2 overflow-hidden pl-2">
+<img class="inline-block h-7 w-7 rounded-full ring-2 ring-surface object-cover" data-alt="Portrait of Alex Mercer, senior backend developer, focused expression in a dark studio setting with vibrant indigo highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi98LjZAlAW4j47Hbk-qVIEi0IK1WIqWhJcwY4QyyoNLtM013jyiD7gsUbt9k0EUC3C3GJx_e3eNqw56PNl8cFTmMqO9Z9nlDmhHHTX7riFPLy7ZExZ4hKxyhO1nAtzfzPsuPHCAYBLUM9bSMJmbHFwRJAFrJ8rlm6_jxX9LvzTMZz--VFrY_oMYW3iTN6FRsD8Ye0a80qOLCv01tMg7Cd1gXv9nGidlGwy8Z_XdwaND1ZGd_vbLfYmi6NriBbLzUNngW9XE1GyttP"/>
+<img class="inline-block h-7 w-7 rounded-full ring-2 ring-surface object-cover" data-alt="Portrait of Sarah Chen, lead infrastructure engineer, smiling slightly with clean modern lighting in a tech workspace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFzeo594yLOOVA69TITGdOEaTXP-rxrCmvGeskio_afSObnOMInfYD5lca5ETdu74bT4uuYaKf3NwM9dfDCCYYC3FcFyVlXCcU6VCSBYQDnVe5fYXJ34aAREidHMuiOoeHIEUdtBGeGa3xZh9CfhDj8CyY_jYdQvlSk0c0Q3wzIpZksF9t43PNaX7t9IYIDhLLGYPOjpTZK-rsNXYxzGOafXhu3ptfb9ecvTRXVEdaZwEv4pqsyfPZUOaHAZ9qQqooEIjFWX8gJRb4"/>
+<img class="inline-block h-7 w-7 rounded-full ring-2 ring-surface object-cover" data-alt="Portrait of Marcus Vance, security architect, wearing dark hoodie in professional software development environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9Y5QkeRhadMgyaku5D5Y81VOQFKlDcAvYa08DSCTzbVC7VcBy_SWy_h5kd7__H4_jPJrpr7JE3XxEVBSHz1otXF0QJ2IcqRDAB96VVgsPck-E28SIK69JgT93hCQww_o_3b5ZgIdLRXi8rkT1RtrBjljfKpJYc3OerywbeN_UWoTUnFoOZKjP7T12XQEICn4YuXnFTrMnyoMcPJhwKaTc3D46tbsE_JESEkCqiib4dqDI0hj8Jf_yiIOy3eJnZ38kaiyrH1d7JxJB"/>
+<div class="flex items-center justify-center h-7 w-7 rounded-full ring-2 ring-surface bg-surface-container-high text-on-surface-variant text-label-sm font-semibold">+3</div>
+</div>
+</div>
+<!-- Group by Dropdown -->
+<div class="flex items-center gap-2">
+<span class="text-label-md text-on-surface-variant">Group by:</span>
+<div class="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-xl border border-outline-variant/30 text-label-md text-on-surface cursor-pointer hover:border-primary transition-colors">
+<span>Epic / Assignee</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">unfold_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Kanban Board Columns Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start mt-2">
+<!-- TO DO Column -->
+<div class="flex flex-col bg-surface-container-low/80 backdrop-blur-md rounded-xl border border-outline-variant/40 p-3 min-h-[700px]">
+<div class="flex items-center justify-between px-2 py-3 mb-2 border-b border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-outline"></span>
+<h2 class="font-headline-md text-headline-md text-on-surface">TO DO</h2>
+<span class="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-full text-label-sm font-semibold">5</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant text-code-sm">
+<span>WIP: 5/10</span>
+<button class="p-1 hover:text-on-surface rounded"><span class="material-symbols-outlined text-sm">more_horiz</span></button>
+</div>
+</div>
+<div class="flex flex-col gap-3 flex-1">
+<!-- Card 1: NEXT-104 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-104</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-error text-sm" style="font-variation-settings: 'FILL' 1;" title="Critical Priority">priority_high</span>
+<span class="bg-error/15 text-error border border-error/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Critical</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Implement Redis Distributed Lock for Task Workers</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Backend</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">5 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of developer Alex Mercer with focused professional look and subtle studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr9H74S-KT1ueyi7a_SnPjL2LxusIuwfqBd-tlQP4VsRVJtQlVK2tCciYp_tJieCznWbActQB5io6hos79h2bVowyW1rqG6IjcepKDrQP7KQ2KwIQY0csyd8JOxXWS9nLYezDI8s84Cxy_WgbURY240de1Rirv-IgaoS-P2llAfc4nWBWiMEYdSGLnpy5DSUJQBP0WmBGnqQ6W5M_vvsdaJ9eCFhQASwZ8bqEUVVeEOLFxMiF0DJgPFofFPhks9QiLvw_22ad516JS"/>
+</div>
+</div>
+<!-- Card 2: NEXT-108 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-108</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-sm" title="Medium Priority">arrow_downward</span>
+<span class="bg-tertiary/15 text-tertiary border border-tertiary/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Medium</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Write DB migration for workspace audit table</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Database</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">3 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of developer Sarah Chen smiling in a clean brightly lit tech office setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzSMHPCW95I8YXDUGvsuE1xmig06cYGB_lggZGZUbJgCXAsjt4gh5YXL0vnBunZ4HpvUTKdAobVueqBUzfNzj8kSFDDXTDrXZvrAu_KOT8YxVEkK9uf2ykqZOCOWMWjssrmD6CTAU5wy-XlWcSs6Nt0fjCYdoLrFQqb0P-BoLDEcFM9lw5TVRfeISu2IHdVeeyvuFo4nEBoZtZ8ZC8AXe9KtqEg8kQsV5elIjYz3cpfVstJfKzDwsgl1ADVGynLMgcnh7_DwtFnagZ"/>
+</div>
+</div>
+<!-- Backlog item 3 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-112</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#F59E0B] text-sm" title="High Priority">warning</span>
+<span class="bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">High</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Refactor OAuth2 token introspection cache layer</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Security</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">8 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of security architect Marcus Vance in professional technical attire." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBszYCk1nBRmMqRfxo3yOo0Yihxonn9wHWko8UAxKShQ_IOd8yBCQOEkhGVI76RItP4IuY6KRTkon0Cya9HIZy8AgHa3Vo3J2SnoZVVkZRjSxM76EUwDgNY2AXSqptRJJr48WAFrAsVVPeUbaOR_RXqbwbGag3VNdp7YRSFocjCdZGlrgYvRklycFLQS4iGHV7BzvCxP9A61UQ-f20jWxPYfkt2cm3r2E-0WrBszedHTZSgN5BOWJpMUyH7ZbKhV8ynXcH3RWLJaGon"/>
+</div>
+</div>
+<!-- Backlog item 4 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-115</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-sm" title="Low Priority">remove</span>
+<span class="bg-surface-variant text-on-surface-variant border border-outline-variant/40 text-label-sm px-1.5 py-0.2 rounded font-semibold">Low</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Update Grafana dashboard for memory leaks</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">DevOps</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">2 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of DevOps engineer Elena Rostova with confident expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAeHnx4a8Ls1PkwIM8lk95awXgjB-vJ5nuTD2PwDtdWZcdX_wgD8x50tMYj-cr7hflkVf2GKcFdiM-28MYfTvAUiuf9QZDaWJ8K1kvmTHDssLPyw7FQdnrtw8bwDuWmNT56zejSWI5nK_hBHk2CSi3BlAZWBVx3ZfribPsccbqP45DRXMquCznY5HcDH-EgIBTZnm0TuuPJfARm3w25RX1CsNsuKYkTjO-pLdGUVILossKsSUcH3y1APipUO-c7uL0HLu9vYMJ0gvh"/>
+</div>
+</div>
+<!-- Backlog item 5 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-119</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#F59E0B] text-sm" title="High Priority">warning</span>
+<span class="bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">High</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Add OpenAPI annotations to v2 issue endpoints</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">API</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">3 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of developer Alex Mercer with focused professional look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhQGit6fpF6ASLuS9rYT-Oksgb-vLMvqhvHls23T82WB1KaG9Rt3BfPKRs3_5wds_L9l3E0XACbaBbfvTcdhqg_4EdoQm9BipDBi1UHTDLTnnkFflxYPMmi_ADJDcV6RXwCOHCcAEBYqMoK2UOzrVXIATRBBoc6Rjko76dacjltVEqNSta67fo6MhwynbJUUe6_vo8QbESzetmfuVitHQkWCYUdspQhZPo0r-bSjRfKANRX84P0AG1PBQhwlWYlLnNpT6xbcv6tWN0"/>
+</div>
+</div>
+</div>
+</div>
+<!-- IN PROGRESS Column -->
+<div class="flex flex-col bg-surface-container-low/80 backdrop-blur-md rounded-xl border border-outline-variant/40 p-3 min-h-[700px]">
+<div class="flex items-center justify-between px-2 py-3 mb-2 border-b border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span>
+<h2 class="font-headline-md text-headline-md text-on-surface">IN PROGRESS</h2>
+<span class="bg-surface-container-high text-[#F59E0B] px-2 py-0.5 rounded-full text-label-sm font-semibold">4</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant text-code-sm">
+<span>WIP: 4/6</span>
+<button class="p-1 hover:text-on-surface rounded"><span class="material-symbols-outlined text-sm">more_horiz</span></button>
+</div>
+</div>
+<div class="flex flex-col gap-3 flex-1">
+<!-- Card 1: NEXT-42 (Highlighted as active conflict) -->
+<div class="group bg-surface-container/90 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border-2 border-primary/60 hover:border-primary transition-all duration-200 cursor-pointer shadow-lg relative">
+<div class="absolute -top-2.5 right-3 bg-primary text-on-primary text-label-sm px-2 py-0.5 rounded font-bold uppercase tracking-wider">Active Conflict</div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-42</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-error text-sm" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+<span class="bg-error/15 text-error border border-error/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Critical</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Optimistic UI update rollback on 409 Conflict</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Frontend</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">5 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-primary" data-alt="Avatar of developer Sarah Chen smiling in professional office setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwUDZcpk9ewwpirneN4HDfUTqVdrl0hhKDzd1Pmhi9f-YdPbtj9Xt2KgLQvcmuzOOKpb3lCwx1O8rNKg_5n3xh1NouBzoIzEVM_ATex4Ryvxjt-hAEt_wQhW4COtd3y1_sYRtb6VNdQjptEo1iWE6jH8i0A-TbSGoqCbb7uiNupQacX-CCsgNKUXUgTt0ahMb3obVv35znC6bom2dFWIng3w5EI1bfDVE1A_P9UL5X5Aoa37z0zdGVgifiLxQF0rExIvKEz4MwlyFL"/>
+</div>
+</div>
+<!-- Card 2: NEXT-95 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-95</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#F59E0B] text-sm" title="High Priority">warning</span>
+<span class="bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">High</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Rate limiter middleware on /api/v1/issues</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Backend</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">3 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of developer Alex Mercer with focused expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDy5h_2AX4Hik804WWfABSaY48GKC4-iEmjDwbBylIPeaWKZvl4ZcjsIH3-EU29giwK1MEYsE7p9RsN-Ok-hJyMicjRl2YpI7rRc5nW8EOS-lDzEhWh76dHe6H9-lhn8uXTCN1Oi7VVA4zpb94uMMumulQsyjGI9TZcG4p2_vnhjzljeKDZ8XTnvqSZNpAkr07IS1TA29GmUbqblM-5SZyftwk6JPHqU6E41Za0dWGLcE3LiJQxGq6kD1-RaKCYumDZoLNKVxkZ4AnD"/>
+</div>
+</div>
+<!-- In Progress item 3 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-87</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-sm" title="Medium Priority">arrow_downward</span>
+<span class="bg-tertiary/15 text-tertiary border border-tertiary/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Medium</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Async batch notification queue worker deployment</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Infrastructure</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">5 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of security architect Marcus Vance in corporate attire." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANuPvtbvVBCB-F2251YPMhEn8EGwkRCUYnBOXoho1ehHbkU8hv8t5EyTIB81nAUQes_1wQKHDGtZkqES4gEe-x65oVKLFj-Jf4Wj8QrRon4hmkkbzn1CAheYoTleMpJxrJUtGD8bh9Lf7FXskoCGsL1hWFAzFrqG7kXRBQqwZbRZ4tCybkfZNMski8QFdiCRzeKZmQRhoBivUZf79sXlkq7cmoORRVw3ofMYM649TndcLgI3BFoxycqPaEyM-uucoHOAveJjxxEatW"/>
+</div>
+</div>
+<!-- In Progress item 4 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-91</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-error text-sm" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+<span class="bg-error/15 text-error border border-error/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Critical</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Fix memory leak in web socket connection pool</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Core</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">8 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of DevOps engineer Elena Rostova." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpIp4F25euTdDoT8Y3MoheC2tagPfh4UNIbucIZhwOT52zjpwXKUybP-yrObc1fcxbu0HJGT5ZTgPZlHbXbVU4-ejTREmxFY3kagGms7jsreS3Bm-ZVi08d_f9HSLVOS3t6spNZVgOzbIuYgXFdBMSlG4h3-1bwtUdpiIJmS_cPw7uXKbkLtOyW5CSN3COtnwpqxkEUnvJOpCFBDhXiCXqxuE2YlsRL3TxB6i17FX9Gr4EcRXFmvVLnFteidNLs0JBnwyORx0TcCAq"/>
+</div>
+</div>
+</div>
+</div>
+<!-- IN REVIEW Column -->
+<div class="flex flex-col bg-surface-container-low/80 backdrop-blur-md rounded-xl border border-outline-variant/40 p-3 min-h-[700px]">
+<div class="flex items-center justify-between px-2 py-3 mb-2 border-b border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<h2 class="font-headline-md text-headline-md text-on-surface">IN REVIEW</h2>
+<span class="bg-surface-container-high text-primary px-2 py-0.5 rounded-full text-label-sm font-semibold">2</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant text-code-sm">
+<span>WIP: 2/4</span>
+<button class="p-1 hover:text-on-surface rounded"><span class="material-symbols-outlined text-sm">more_horiz</span></button>
+</div>
+</div>
+<div class="flex flex-col gap-3 flex-1">
+<!-- Card 1: NEXT-88 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-88</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#F59E0B] text-sm" title="High Priority">warning</span>
+<span class="bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">High</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">Spring Security JWT token revocation tests</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Testing</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">3 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of developer Sarah Chen smiling in bright office setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfDWGPNOrCaVjWaotfkO5ZqXaqCGf1VFDyOMpZTaCJniJU_lw6_cV75pRR2x4e7fJCFw2MrBbY7oK1xccypVmlFFDiZkTFmo4K6xjt9f7eF-qHzsNtzBbGHp0EbS8idcQ8KRb8iGpHvolJe_zRElO_ld4cDIi4COrlR7qq1RlK1B9cLsg1cle4Wew5otmDOnqDFAxdjMWnkIdRDwlm8AoE9mSj0FHPIlIJ6MGsleJovzgLQjssXYmS5-X9OhutkMEmkpaMQXXJ2lcV"/>
+</div>
+</div>
+<!-- Card 2: NEXT-76 -->
+<div class="group bg-surface-container/80 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/40 hover:border-primary/60 transition-all duration-200 cursor-pointer shadow-sm relative">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">NEXT-76</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-sm" title="Medium Priority">arrow_downward</span>
+<span class="bg-tertiary/15 text-tertiary border border-tertiary/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Medium</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface font-medium mb-3 group-hover:text-primary-container transition-colors">GraphQL federation schema validation pipeline</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded text-code-sm">API</span>
+<span class="bg-surface-container-highest text-primary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">5 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of developer Alex Mercer." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeiLg5YDUNBTO-oLmd4jnODSNkZLTsUGQ0y0L6_og89RMh9UFDNysJmsESe8fpcFlbi28qVCu4BzwAK0TpiAjDf7XYEbZSFquZ4z_e_QMNOM3w8gEOqn1cHyFVutKQWDgEfsKfEWIuxTA5Tp4gul2SpxiGlN7G7po5O5YNrJttxDrrnik30WKHWU7RX6O0wprQKYtRTn0EN229GOeyD5k23Eje91EzWPWSAZMjdTk5rgDiHvDSXPmtpkTcqES7W5Zj6CWZ14739ptX"/>
+</div>
+</div>
+</div>
+</div>
+<!-- DONE Column -->
+<div class="flex flex-col bg-surface-container-low/80 backdrop-blur-md rounded-xl border border-outline-variant/40 p-3 min-h-[700px]">
+<div class="flex items-center justify-between px-2 py-3 mb-2 border-b border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<h2 class="font-headline-md text-headline-md text-on-surface">DONE</h2>
+<span class="bg-surface-container-high text-tertiary px-2 py-0.5 rounded-full text-label-sm font-semibold">8</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant text-code-sm">
+<span>Completed</span>
+<button class="p-1 hover:text-on-surface rounded"><span class="material-symbols-outlined text-sm">more_horiz</span></button>
+</div>
+</div>
+<div class="flex flex-col gap-3 flex-1">
+<!-- Card 1: NEXT-71 -->
+<div class="group bg-surface-container/60 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/30 hover:border-tertiary/60 transition-all duration-200 cursor-pointer shadow-sm relative opacity-85 hover:opacity-100">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-tertiary font-mono bg-tertiary/10 px-2 py-0.5 rounded border border-tertiary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">check</span> NEXT-71
+              </span>
+<span class="bg-tertiary/15 text-tertiary border border-tertiary/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Done</span>
+</div>
+<p class="text-body-md text-on-surface/90 font-medium mb-3 line-through">PostgreSQL Flyway schema baseline</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant/50 text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Database</span>
+<span class="bg-surface-container-highest text-tertiary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">5 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of Sarah Chen." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPRVlxuxaf_R7N5XNGxf-MZUN2KcVzb_AgFaOh67rqbq9OpIgCEyqT2nVugJoCqvHo4FcQoyFgJ_PxFVum8VAe-eIRCHXGP2e3EprkBgtmNzjNjPWCf28z5BZBl8EUIVL7j1Hazubai3yNzKHAOFfHxRHBrSUCE7RWSOYSj9Vcik7lJ9y-_lmOpyiJyfPzFcRFGaQ40CYWeQT-Eq7Tum0KCptWnKxFz1vHCP_LhlONGUt4kc6vpGWC-qwcayXai2Q9QJMySrt5_ZjP"/>
+</div>
+</div>
+<!-- Card 2: NEXT-62 -->
+<div class="group bg-surface-container/60 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/30 hover:border-tertiary/60 transition-all duration-200 cursor-pointer shadow-sm relative opacity-85 hover:opacity-100">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-tertiary font-mono bg-tertiary/10 px-2 py-0.5 rounded border border-tertiary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">check</span> NEXT-62
+              </span>
+<span class="bg-tertiary/15 text-tertiary border border-tertiary/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Done</span>
+</div>
+<p class="text-body-md text-on-surface/90 font-medium mb-3 line-through">Kubernetes ingress TLS termination setup</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant/50 text-on-surface-variant px-2 py-0.5 rounded text-code-sm">DevOps</span>
+<span class="bg-surface-container-highest text-tertiary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">3 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of Marcus Vance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAabpHhg5qnSVspVVSPy6VJ_uCw29hOY-BSTP4WsHYFkwvGTyyiK-aLLkPv1Mki3vn1ZYADEHlHILpsYiKGtxyk_I6qoHBHQ4Q3wh4FmbGwVleCaON7VEnnG2CGD4VTcBimoLJjRSf6wtNShvALkIBCS8lm3JPapDFrJetr9ia5cb9sn-u2YUoHxDaHpWVLIXbISQ1icAkQ7g06_dmxlI1dTiCy7w9X1Vym5QgTKvzFWEmH0-pvouxOge-MxT0zDSIi-qfpEDXarMds"/>
+</div>
+</div>
+<!-- Card 3: NEXT-59 -->
+<div class="group bg-surface-container/60 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/30 hover:border-tertiary/60 transition-all duration-200 cursor-pointer shadow-sm relative opacity-85 hover:opacity-100">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-tertiary font-mono bg-tertiary/10 px-2 py-0.5 rounded border border-tertiary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">check</span> NEXT-59
+              </span>
+<span class="bg-tertiary/15 text-tertiary border border-tertiary/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Done</span>
+</div>
+<p class="text-body-md text-on-surface/90 font-medium mb-3 line-through">Implement CI pipeline security vulnerability scanner</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant/50 text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Security</span>
+<span class="bg-surface-container-highest text-tertiary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">5 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of Elena Rostova." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAP4rIYMWLoUkZ1wRJhhG5LZ5r1B7rEwk-Lz2cVlzwx-995uoKoaP_t5xEzN3B7T6UlGt4D-59r4zqqPcdUZCqfqTYjZcKWypTuC5UYMfLKE1u1WE6KjZVGuYNYKBJcXXyVeM8baaNN0g7tmayCWH1C9dOWvhykJl8FBrBk2qBQIP3Q3C6ln8lxHYEJYaUvoMvFdNX5NMWKRZ2WwuDj_UXPU2qWhC0OGo2mYYv0nG2CWYKcsHaD84_x_-X_TWptyacGx12ZPuMXZW-l"/>
+</div>
+</div>
+<!-- Card 4: NEXT-55 -->
+<div class="group bg-surface-container/60 backdrop-blur-md hover:bg-surface-container-high p-4 rounded-xl border border-outline-variant/30 hover:border-tertiary/60 transition-all duration-200 cursor-pointer shadow-sm relative opacity-85 hover:opacity-100">
+<div class="flex items-center justify-between mb-2">
+<span class="text-code-sm text-tertiary font-mono bg-tertiary/10 px-2 py-0.5 rounded border border-tertiary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">check</span> NEXT-55
+              </span>
+<span class="bg-tertiary/15 text-tertiary border border-tertiary/30 text-label-sm px-1.5 py-0.2 rounded font-semibold">Done</span>
+</div>
+<p class="text-body-md text-on-surface/90 font-medium mb-3 line-through">Configure Datadog APM distributed tracing</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant/50 text-on-surface-variant px-2 py-0.5 rounded text-code-sm">Observability</span>
+<span class="bg-surface-container-highest text-tertiary px-2 py-0.5 rounded font-mono text-code-sm font-semibold">2 pts</span>
+</div>
+<img class="w-6 h-6 rounded-full border border-outline-variant" data-alt="Avatar of Alex Mercer." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAy1XQc7_24xJc0oFo-fhIHVCltm2ZQ_CaP3tz-cJ2V9KMDikwvOX1njPTZrQjXM7ptXsr53uJLWTWZHRSlcX5pxLiuRpeIKwq104Jdde4ZSwp2uDc4QYp6f_aHtdNscnQDVDae3W_AznWB-IROwvZ2Kk_NQ31Q1ag_hUjTneXst5HhXz4CpKrNMZmb2tDOkH693qe8cOWWq0NdyXIU2yYzl-vNN0_GEqMwlD3Y3WDpTck_LHgjhZOfNUtFEerTxwpyRRL4iyzBYn_u"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Notification Toast (Bottom Right) -->
+<div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-surface-container-high border border-error/40 text-on-surface px-4 py-3 rounded-xl shadow-2xl backdrop-blur-xl animate-bounce duration-1000">
+<div class="p-1.5 bg-error/20 text-error rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-base">sync_problem</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-md font-semibold text-error">Optimistic Transition Reverted</span>
+<span class="text-body-sm text-on-surface-variant">Issue NEXT-42 was updated concurrently (Version 3 -> 4)</span>
+</div>
+<button class="ml-3 text-on-surface-variant hover:text-on-surface p-1">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- Footer -->
+<footer class="w-full py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-outline-variant/30 bg-surface-container-lowest dark:bg-surface-container-lowest mt-auto">
+<div class="font-label-md text-label-md text-on-surface dark:text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary inline-block shadow-[0_0_8px_#4edea3]"></span>
+      © 2025 NexTrack Technologies Inc. Systems Operational. SOC2 Type II Certified.
+    </div>
+<div class="flex items-center gap-6 font-body-sm text-on-surface-variant">
+<a class="hover:text-on-surface transition-colors" href="#">Security</a>
+<a class="hover:text-on-surface transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-on-surface transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-on-surface transition-colors text-tertiary font-medium" href="#">Status: 99.99% Uptime</a>
+<a class="hover:text-on-surface transition-colors" href="#">System Audit Log</a>
+</div>
+</footer>
+</body></html>

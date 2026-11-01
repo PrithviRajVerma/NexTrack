@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NexTrack - Workspace Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "on-background": "#dae2fd",
+              "surface-variant": "#2d3449",
+              "error": "#ffb4ab",
+              "surface": "#0b1326",
+              "on-secondary": "#131e8c",
+              "primary-fixed-dim": "#c0c1ff",
+              "outline": "#908fa0",
+              "surface-container-high": "#222a3d",
+              "on-surface": "#dae2fd",
+              "surface-tint": "#c0c1ff",
+              "outline-variant": "#464554",
+              "tertiary-fixed": "#6ffbbe",
+              "on-primary-fixed": "#07006c",
+              "surface-container-low": "#131b2e",
+              "on-secondary-fixed-variant": "#2f3aa3",
+              "inverse-surface": "#dae2fd",
+              "secondary-fixed-dim": "#bdc2ff",
+              "primary": "#c0c1ff",
+              "on-tertiary-fixed-variant": "#005236",
+              "on-error": "#690005",
+              "on-tertiary": "#003824",
+              "on-secondary-container": "#a8afff",
+              "surface-bright": "#31394d",
+              "tertiary-container": "#00885d",
+              "on-surface-variant": "#c7c4d7",
+              "inverse-on-surface": "#283044",
+              "secondary-fixed": "#e0e0ff",
+              "on-primary": "#1000a9",
+              "background": "#0b1326",
+              "surface-container-highest": "#2d3449",
+              "surface-container-lowest": "#060e20",
+              "on-tertiary-fixed": "#002113",
+              "surface-dim": "#0b1326",
+              "primary-fixed": "#e1e0ff",
+              "error-container": "#93000a",
+              "on-primary-fixed-variant": "#2f2ebe",
+              "secondary": "#bdc2ff",
+              "tertiary": "#4edea3",
+              "tertiary-fixed-dim": "#4edea3",
+              "surface-container": "#171f33",
+              "on-primary-container": "#0d0096",
+              "inverse-primary": "#494bd6",
+              "primary-container": "#8083ff",
+              "on-tertiary-container": "#000703",
+              "on-secondary-fixed": "#000767",
+              "secondary-container": "#2f3aa3",
+              "on-error-container": "#ffdad6"
+            },
+            "borderRadius": {
+              "DEFAULT": "0.125rem",
+              "lg": "0.25rem",
+              "xl": "0.5rem",
+              "full": "0.75rem"
+            },
+            "spacing": {
+              "gutter-lg": "1.5rem",
+              "space-xs": "0.25rem",
+              "space-sm": "0.5rem",
+              "space-md": "0.75rem",
+              "space-lg": "1rem",
+              "margin": "1rem",
+              "margin-lg": "2rem",
+              "space-xl": "1.5rem",
+              "margin-md": "1.5rem",
+              "gutter": "1rem"
+            },
+            "fontFamily": {
+              "body-lg": ["Inter"],
+              "headline-md": ["Geist"],
+              "label-sm": ["Geist"],
+              "label-md": ["Geist"],
+              "code-sm": ["Geist"],
+              "body-sm": ["Inter"],
+              "headline-lg": ["Geist"],
+              "headline-xl": ["Geist"],
+              "body-md": ["Inter"],
+              "display-lg": ["Geist"]
+            },
+            "fontSize": {
+              "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "-0.011em", "fontWeight": "400"}],
+              "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.015em", "fontWeight": "600"}],
+              "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+              "label-md": ["13px", {"lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+              "code-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+              "body-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "400"}],
+              "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+              "headline-xl": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.025em", "fontWeight": "600"}],
+              "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "-0.006em", "fontWeight": "400"}],
+              "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+<!-- TopNavBar Shell -->
+<header class="w-full fixed top-0 z-50 px-6 h-16 flex items-center justify-between bg-surface/80 dark:bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-6">
+<div class="font-headline-md text-headline-md tracking-tight text-on-surface dark:text-on-surface flex items-center gap-2 cursor-pointer">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">hub</span>
+<span>NexTrack</span>
+</div>
+<!-- Workspace Switcher Dropdown Anchor -->
+<div class="relative">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-container border border-outline-variant/40 hover:border-primary/50 text-on-surface text-label-md transition-all" onclick="toggleWorkspaceDropdown()">
+<div class="w-5 h-5 rounded bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-[10px]">AC</div>
+<span class="font-medium">Acme Cloud Engineering</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">unfold_more</span>
+</button>
+<!-- Workspace Dropdown Menu -->
+<div class="hidden absolute left-0 mt-2 w-72 rounded-xl bg-surface-container-high border border-outline-variant/50 shadow-2xl py-2 z-50" id="workspace-dropdown">
+<div class="px-3 py-1.5 text-label-sm text-on-surface-variant uppercase tracking-wider">Workspaces</div>
+<button class="w-full px-3 py-2 text-left flex items-center justify-between hover:bg-surface-bright/50 text-on-surface bg-surface-container/60">
+<div class="flex items-center gap-2.5">
+<div class="w-6 h-6 rounded bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">AC</div>
+<div>
+<div class="text-label-md font-medium">Acme Cloud Engineering</div>
+<div class="text-body-sm text-on-surface-variant">/w/acme-cloud</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary text-sm">check</span>
+</button>
+<button class="w-full px-3 py-2 text-left flex items-center gap-2.5 hover:bg-surface-bright/50 text-on-surface-variant hover:text-on-surface" onclick="openModal('switch-workspace-modal'); toggleWorkspaceDropdown();">
+<div class="w-6 h-6 rounded bg-surface-variant text-on-surface flex items-center justify-center font-bold text-xs">NV</div>
+<div>
+<div class="text-label-md font-medium">Nova Ventures</div>
+<div class="text-body-sm text-on-surface-variant">/w/nova-ventures</div>
+</div>
+</button>
+<div class="h-px bg-outline-variant/30 my-1"></div>
+<button class="w-full px-3 py-2 text-left flex items-center gap-2 text-primary hover:bg-surface-bright/50 text-label-md" onclick="openModal('create-workspace-modal'); toggleWorkspaceDropdown();">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+<span>Create Workspace</span>
+</button>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-1">
+<a class="px-3 py-1.5 rounded-lg text-on-surface text-label-md font-semibold hover:bg-surface-container-high/40" href="#">Product</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant text-label-md hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="#">Features</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant text-label-md hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="#">Enterprise</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant text-label-md hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="#">Changelog</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant text-label-md hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="#">Documentation</a>
+</nav>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-3">
+<!-- Search Bar Trigger -->
+<div class="hidden lg:flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-xl border border-outline-variant/40 text-on-surface-variant cursor-pointer hover:border-primary/50 transition-all" onclick="alert('Command Palette (⌘K) activated!')">
+<span class="material-symbols-outlined text-sm">search</span>
+<span class="text-body-sm">Search issues, projects...</span>
+<kbd class="bg-surface-variant/60 px-1.5 py-0.5 rounded text-[10px] font-mono text-on-surface">⌘K</kbd>
+</div>
+<!-- Notification Bell -->
+<button class="relative p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-lg">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+</button>
+<button class="p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-lg">help</span>
+</button>
+<div class="h-6 w-px bg-outline-variant/40 mx-1"></div>
+<!-- User Profile Avatar -->
+<div class="flex items-center gap-2 cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-tertiary p-0.5 flex items-center justify-center">
+<div class="w-full h-full rounded-full bg-surface flex items-center justify-center text-xs font-bold text-primary">JD</div>
+</div>
+</div>
+</div>
+</header>
+<!-- App Layout Container -->
+<div class="flex pt-16 flex-1">
+<!-- Left Sidebar -->
+<aside class="w-64 border-r border-outline-variant/30 bg-surface-container-lowest/50 hidden md:flex flex-col justify-between p-4 sticky top-16 h-[calc(100vh-4rem)]">
+<div class="space-y-6">
+<div class="space-y-1">
+<div class="px-3 py-1 text-label-sm text-on-surface-variant uppercase tracking-wider">Workspace</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl bg-primary-container/15 text-primary text-label-md font-medium" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span>Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container text-label-md transition-all" href="#">
+<span class="material-symbols-outlined text-lg">folder_open</span>
+<span>All Projects</span>
+<span class="ml-auto bg-surface-container px-1.5 py-0.5 rounded text-[10px] text-on-surface-variant">6</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container text-label-md transition-all" href="#">
+<span class="material-symbols-outlined text-lg">group</span>
+<span>Team Members</span>
+<span class="ml-auto bg-surface-container px-1.5 py-0.5 rounded text-[10px] text-on-surface-variant">28</span>
+</a>
+</div>
+<div class="space-y-1">
+<div class="px-3 py-1 text-label-sm text-on-surface-variant uppercase tracking-wider">Governance</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container text-label-md transition-all" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container text-label-md transition-all" href="#">
+<span class="material-symbols-outlined text-lg">history</span>
+<span>Audit Log</span>
+</a>
+</div>
+</div>
+<!-- Workspace Storage/Plan widget -->
+<div class="p-3 rounded-xl bg-surface-container border border-outline-variant/30 space-y-2">
+<div class="flex items-center justify-between text-label-sm">
+<span class="text-on-surface-variant">Enterprise Plan</span>
+<span class="text-primary font-mono">99.9%</span>
+</div>
+<div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[78%] rounded-full"></div>
+</div>
+<div class="text-[11px] text-on-surface-variant flex justify-between">
+<span>SOC2 Type II Active</span>
+<span>24/7 Ops</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 p-6 md:p-8 space-y-8 overflow-y-auto">
+<!-- Workspace Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-outline-variant/30">
+<div class="space-y-1">
+<div class="flex items-center gap-3">
+<h1 class="font-headline-xl text-headline-xl text-on-surface">Acme Cloud Engineering</h1>
+<span class="px-2 py-0.5 rounded-full bg-primary-container/20 text-primary text-code-sm font-mono border border-primary/30">/w/acme-cloud</span>
+</div>
+<p class="text-body-md text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-tertiary">verified_user</span>
+<span>Infrastructure, core microservices, and client portal development</span>
+<span class="text-outline-variant">•</span>
+<span class="text-on-surface font-medium">28 team members</span>
+</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-bright text-on-surface border border-outline-variant/50 text-label-md font-medium flex items-center gap-2 transition-all" onclick="openModal('create-workspace-modal')">
+<span class="material-symbols-outlined text-sm">settings</span>
+<span>Workspace Settings</span>
+</button>
+<button class="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-label-md font-medium flex items-center gap-2 shadow-lg shadow-primary/20 transition-all" onclick="alert('New Project wizard opened!')">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>New Project</span>
+</button>
+</div>
+</div>
+<!-- 4 Metric Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1 -->
+<div class="p-4 rounded-xl bg-surface-container/80 border border-outline-variant/40 backdrop-blur-md relative overflow-hidden group hover:border-primary/40 transition-all">
+<div class="flex items-center justify-between">
+<span class="text-label-md text-on-surface-variant">Active Projects</span>
+<div class="w-8 h-8 rounded-lg bg-primary-container/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">folder</span>
+</div>
+</div>
+<div class="mt-4 flex items-baseline gap-2">
+<span class="text-headline-xl font-headline-xl text-on-surface">6</span>
+<span class="text-code-sm text-tertiary flex items-center"><span class="material-symbols-outlined text-xs">trending_up</span>+2 this month</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<!-- Card 2 -->
+<div class="p-4 rounded-xl bg-surface-container/80 border border-outline-variant/40 backdrop-blur-md relative overflow-hidden group hover:border-primary/40 transition-all">
+<div class="flex items-center justify-between">
+<span class="text-label-md text-on-surface-variant">Open Issues</span>
+<div class="w-8 h-8 rounded-lg bg-error/15 text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">bug_report</span>
+</div>
+</div>
+<div class="mt-4 flex items-baseline gap-2">
+<span class="text-headline-xl font-headline-xl text-on-surface">142</span>
+<span class="text-code-sm text-error flex items-center"><span class="material-symbols-outlined text-xs">arrow_upward</span>12 urgent</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-error to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<!-- Card 3 -->
+<div class="p-4 rounded-xl bg-surface-container/80 border border-outline-variant/40 backdrop-blur-md relative overflow-hidden group hover:border-primary/40 transition-all">
+<div class="flex items-center justify-between">
+<span class="text-label-md text-on-surface-variant">Sprint Velocity</span>
+<div class="w-8 h-8 rounded-lg bg-tertiary-container/20 text-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">bolt</span>
+</div>
+</div>
+<div class="mt-4 flex items-baseline gap-2">
+<span class="text-headline-xl font-headline-xl text-on-surface">92%</span>
+<span class="text-code-sm text-tertiary flex items-center"><span class="material-symbols-outlined text-xs">check_circle</span>On track</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-tertiary to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<!-- Card 4 -->
+<div class="p-4 rounded-xl bg-surface-container/80 border border-outline-variant/40 backdrop-blur-md relative overflow-hidden group hover:border-primary/40 transition-all">
+<div class="flex items-center justify-between">
+<span class="text-label-md text-on-surface-variant">Avg Cycle Time</span>
+<div class="w-8 h-8 rounded-lg bg-secondary-container/30 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">timer</span>
+</div>
+</div>
+<div class="mt-4 flex items-baseline gap-2">
+<span class="text-headline-xl font-headline-xl text-on-surface">3.2d</span>
+<span class="text-code-sm text-tertiary flex items-center"><span class="material-symbols-outlined text-xs">trending_down</span>-0.4d fast</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<!-- Project Cards Grid -->
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Active Projects</h2>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-container text-on-surface text-label-md border border-outline-variant/40">All (6)</button>
+<button class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface text-label-md">Engineering (4)</button>
+<button class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface text-label-md">Platform (2)</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Project 1: Core Monolith Platform -->
+<div class="p-5 rounded-xl bg-surface-container/80 border border-outline-variant/40 hover:border-primary/60 backdrop-blur-md flex flex-col justify-between space-y-4 transition-all group">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-primary-container/20 text-primary font-mono text-code-sm border border-primary/30">NEXT</span>
+<span class="text-label-sm text-on-surface-variant">Updated 2m ago</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Core Monolith Platform</h3>
+<p class="text-body-sm text-on-surface-variant mt-1 line-clamp-2">Backend infrastructure scaling, database sharding, and core APIs.</p>
+</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-outline-variant/30">
+<div class="flex items-center justify-between text-code-sm">
+<span class="text-on-surface-variant">42 issues</span>
+<span class="text-primary font-semibold">65% done</span>
+</div>
+<div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%] rounded-full"></div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">AK</div>
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">MR</div>
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">+4</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface hover:bg-primary hover:text-on-primary text-on-surface text-label-md font-medium border border-outline-variant/50 transition-all" onclick="alert('Opening Core Monolith Platform Board...')">Open Board</button>
+</div>
+</div>
+</div>
+<!-- Project 2: Identity Gateway -->
+<div class="p-5 rounded-xl bg-surface-container/80 border border-outline-variant/40 hover:border-primary/60 backdrop-blur-md flex flex-col justify-between space-y-4 transition-all group">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-tertiary-container/20 text-tertiary font-mono text-code-sm border border-tertiary/30">AUTH</span>
+<span class="text-label-sm text-on-surface-variant">Updated 15m ago</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Identity Gateway</h3>
+<p class="text-body-sm text-on-surface-variant mt-1 line-clamp-2">OAuth2, SAML SSO integrations, and enterprise security compliance.</p>
+</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-outline-variant/30">
+<div class="flex items-center justify-between text-code-sm">
+<span class="text-on-surface-variant">18 issues</span>
+<span class="text-tertiary font-semibold">80% done</span>
+</div>
+<div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[80%] rounded-full"></div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">JD</div>
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">SL</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface hover:bg-primary hover:text-on-primary text-on-surface text-label-md font-medium border border-outline-variant/50 transition-all" onclick="alert('Opening Identity Gateway Board...')">Open Board</button>
+</div>
+</div>
+</div>
+<!-- Project 3: Billing Engine -->
+<div class="p-5 rounded-xl bg-surface-container/80 border border-outline-variant/40 hover:border-primary/60 backdrop-blur-md flex flex-col justify-between space-y-4 transition-all group">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-secondary-container/30 text-secondary font-mono text-code-sm border border-secondary/30">BILL</span>
+<span class="text-label-sm text-on-surface-variant">Updated 1h ago</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Billing Engine</h3>
+<p class="text-body-sm text-on-surface-variant mt-1 line-clamp-2">Stripe integration, usage metering, and automated invoicing pipelines.</p>
+</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-outline-variant/30">
+<div class="flex items-center justify-between text-code-sm">
+<span class="text-on-surface-variant">34 issues</span>
+<span class="text-secondary font-semibold">45% done</span>
+</div>
+<div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[45%] rounded-full"></div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">TS</div>
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">PN</div>
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">+2</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface hover:bg-primary hover:text-on-primary text-on-surface text-label-md font-medium border border-outline-variant/50 transition-all" onclick="alert('Opening Billing Engine Board...')">Open Board</button>
+</div>
+</div>
+</div>
+<!-- Project 4: Customer Portal -->
+<div class="p-5 rounded-xl bg-surface-container/80 border border-outline-variant/40 hover:border-primary/60 backdrop-blur-md flex flex-col justify-between space-y-4 transition-all group">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-error/20 text-error font-mono text-code-sm border border-error/30">PORT</span>
+<span class="text-label-sm text-on-surface-variant">Updated 3h ago</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">Customer Portal</h3>
+<p class="text-body-sm text-on-surface-variant mt-1 line-clamp-2">Next.js customer dashboard, ticketing portal, and telemetry analytics.</p>
+</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-outline-variant/30">
+<div class="flex items-center justify-between text-code-sm">
+<span class="text-on-surface-variant">29 issues</span>
+<span class="text-error font-semibold">72% done</span>
+</div>
+<div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
+<div class="bg-error h-full w-[72%] rounded-full"></div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">AL</div>
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-surface text-[10px] flex items-center justify-center font-bold">CK</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface hover:bg-primary hover:text-on-primary text-on-surface text-label-md font-medium border border-outline-variant/50 transition-all" onclick="alert('Opening Customer Portal Board...')">Open Board</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Cross-Project Activity Feed (Audit Log) -->
+<div class="p-6 rounded-xl bg-surface-container/60 border border-outline-variant/40 space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">history</span>
+<span>Recent Cross-Project Activity</span>
+</h3>
+<button class="text-primary text-label-md hover:underline">View Full Audit Log</button>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface/50 border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container/20 text-primary flex items-center justify-center text-xs font-bold">AK</div>
+<div>
+<div class="text-label-md text-on-surface">Alex Kim closed issue <span class="font-mono text-primary">NEXT-142</span> in Core Monolith Platform</div>
+<div class="text-body-sm text-on-surface-variant">Database index migration completed successfully on US-East cluster.</div>
+</div>
+</div>
+<span class="text-code-sm text-on-surface-variant">12m ago</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface/50 border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-tertiary-container/20 text-tertiary flex items-center justify-center text-xs font-bold">SL</div>
+<div>
+<div class="text-label-md text-on-surface">Sarah Lin deployed <span class="font-mono text-tertiary">AUTH-88</span> to production</div>
+<div class="text-body-sm text-on-surface-variant">Added Okta SCIM provisioning endpoint and token refresh guard.</div>
+</div>
+</div>
+<span class="text-code-sm text-on-surface-variant">45m ago</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface/50 border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container/30 text-secondary flex items-center justify-center text-xs font-bold">TS</div>
+<div>
+<div class="text-label-md text-on-surface">Tom Smith created new project <span class="font-mono text-secondary">BILL</span></div>
+<div class="text-body-sm text-on-surface-variant">Initialized repository and assigned initial sprint backlog items.</div>
+</div>
+</div>
+<span class="text-code-sm text-on-surface-variant">2h ago</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer Shell -->
+<footer class="w-full py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-outline-variant/30 bg-surface-container-lowest dark:bg-surface-container-lowest">
+<div class="font-label-md text-label-md text-on-surface dark:text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-primary">hub</span>
+<span>© 2025 NexTrack Technologies Inc. Systems Operational. SOC2 Type II Certified.</span>
+</div>
+<div class="flex items-center gap-6 font-body-sm text-body-sm text-on-surface-variant">
+<a class="hover:text-on-surface transition-colors" href="#">Security</a>
+<a class="hover:text-on-surface transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-on-surface transition-colors" href="#">Terms of Service</a>
+<span class="text-tertiary flex items-center gap-1 font-mono"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span> Status: 99.99% Uptime</span>
+<a class="hover:text-on-surface transition-colors" href="#">System Audit Log</a>
+</div>
+</footer>
+<!-- Interactive Modal: Switch Workspace -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-surface/80 backdrop-blur-sm" id="switch-workspace-modal">
+<div class="w-full max-w-md p-6 rounded-2xl bg-surface-container-high border border-outline-variant shadow-2xl space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Switch Workspace</h3>
+<button class="text-on-surface-variant hover:text-on-surface" onclick="closeModal('switch-workspace-modal')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="space-y-2">
+<div class="p-3 rounded-xl bg-surface border border-primary cursor-pointer flex items-center justify-between" onclick="alert('Switched to Acme Cloud Engineering'); closeModal('switch-workspace-modal');">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-sm">AC</div>
+<div>
+<div class="text-label-md font-semibold text-on-surface">Acme Cloud Engineering</div>
+<div class="text-body-sm text-on-surface-variant">/w/acme-cloud • 28 members</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div class="p-3 rounded-xl bg-surface/50 border border-outline-variant/40 hover:border-primary/50 cursor-pointer flex items-center justify-between transition-all" onclick="alert('Switched to Nova Ventures'); closeModal('switch-workspace-modal');">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant text-on-surface flex items-center justify-center font-bold text-sm">NV</div>
+<div>
+<div class="text-label-md font-semibold text-on-surface">Nova Ventures</div>
+<div class="text-body-sm text-on-surface-variant">/w/nova-ventures • 12 members</div>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-2.5 rounded-xl bg-surface-container border border-outline-variant text-on-surface text-label-md font-medium flex items-center justify-center gap-2" onclick="closeModal('switch-workspace-modal'); openModal('create-workspace-modal');">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>Create New Workspace</span>
+</button>
+</div>
+</div>
+<!-- Interactive Modal: Create Workspace -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-surface/80 backdrop-blur-sm" id="create-workspace-modal">
+<div class="w-full max-w-md p-6 rounded-2xl bg-surface-container-high border border-outline-variant shadow-2xl space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Create Workspace</h3>
+<button class="text-on-surface-variant hover:text-on-surface" onclick="closeModal('create-workspace-modal')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="space-y-1.5">
+<label class="text-label-md text-on-surface-variant">Workspace Name</label>
+<input class="w-full px-3 py-2 rounded-xl bg-surface border border-outline-variant text-on-surface focus:border-primary focus:ring-1 focus:ring-primary text-body-md outline-none" placeholder="e.g. Acme AI Labs" type="text"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-label-md text-on-surface-variant">Workspace Slug / URL</label>
+<input class="w-full px-3 py-2 rounded-xl bg-surface border border-outline-variant text-on-surface focus:border-primary focus:ring-1 focus:ring-primary text-body-md outline-none" placeholder="/w/acme-ai" type="text"/>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3">
+<button class="px-4 py-2 rounded-xl bg-surface-container text-on-surface-variant hover:text-on-surface text-label-md" onclick="closeModal('create-workspace-modal')">Cancel</button>
+<button class="px-4 py-2 rounded-xl bg-primary text-on-primary text-label-md font-semibold hover:bg-primary-container" onclick="alert('Workspace created successfully!'); closeModal('create-workspace-modal');">Create Workspace</button>
+</div>
+</div>
+</div>
+<!-- Script Utilities -->
+<script>
+        function toggleWorkspaceDropdown() {
+            const dropdown = document.getElementById('workspace-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('workspace-dropdown');
+            const switcherBtn = dropdown.previousElementSibling;
+            if (!dropdown.contains(e.target) && !switcherBtn.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    </script>
+</body></html>
