@@ -19,8 +19,11 @@ Unlike conventional lightweight Kanban tools, NexTrack bridges the gap between p
 
 ## 📐 Architecture Specification
 
-The complete, frozen engineering design specification is documented in:
-📄 **[`NexTrack_Project_Architecture.md`](./NexTrack_Project_Architecture.md)**
+The complete, frozen engineering design specification and architectural decision records (ADRs) are documented in:
+📄 **[`architecture.md`](./architecture.md)**
+
+For step-by-step development tracking across all 12 phases, see:
+📋 **[`implementation.md`](./implementation.md)**
 
 ### Key Technical Patterns
 1. **GitHub App Primary Integration:** Installation-based authentication with RS256 JWTs and ephemeral in-memory cached tokens (50-min TTL), eliminating personal access token risks.
