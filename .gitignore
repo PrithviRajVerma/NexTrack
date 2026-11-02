@@ -13,6 +13,11 @@ Thumbs.db
 # Build and runtime outputs
 target/
 build/
+**/build/
+.gradle/
+**/.gradle/
 dist/
+**/dist/
 node_modules/
+**/node_modules/
 *.log
