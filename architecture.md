@@ -227,11 +227,14 @@ nextrack/
 ```
 
 ### Module Layering Structure
-Every substantial domain module enforces clean three-layer separation:
-- **`api/`:** REST Controllers, Request/Response DTOs, OpenAPI annotations, HTTP error translation.
-- **`application/`:** Application use-case services, transactional boundaries, permission checks, domain event publishing.
-- **`domain/`:** Aggregate roots, entities, value objects, domain invariants, port interfaces (`*Repository`).
-- **`infrastructure/`:** Spring Data JPA adapters, database query specifications, third-party client integrations.
+Every domain module (`identity`, `workspace`, `project`, `issue`, etc.) enforces strict granular separation of concerns:
+- **`api/controller/`:** Pure HTTP handling with `@RestController`, path mapping, parameter validation, and status codes.
+- **`api/dto/request/`:** Inbound command models as immutable Java `record`s with Jakarta validation constraints (`@NotBlank`, `@Size`, etc.).
+- **`api/dto/response/`:** Outbound presentation models as immutable Java `record`s representing JSON contracts.
+- **`api/mapper/`:** Decoupled mapper components translating between domain entities and API DTOs.
+- **`application/service/`:** Orchestration services owning `@Transactional` boundaries, domain logic invocation, and cross-module checks.
+- **`domain/entity/`:** Pure domain models, JPA `@Entity` definitions, state invariants, and domain Enums.
+- **`domain/repository/`:** Spring Data JPA repository interfaces executing JPQL and atomic native SQL operations.
 
 ---
 

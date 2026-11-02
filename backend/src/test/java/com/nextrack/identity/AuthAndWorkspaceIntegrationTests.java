@@ -1,16 +1,16 @@
 package com.nextrack.identity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nextrack.identity.api.AuthResponse;
-import com.nextrack.identity.api.LoginRequest;
-import com.nextrack.identity.api.RegisterRequest;
-import com.nextrack.project.api.CreateProjectRequest;
-import com.nextrack.project.api.ProjectResponse;
-import com.nextrack.project.domain.ProjectIssueCounterRepository;
-import com.nextrack.project.domain.ProjectRole;
-import com.nextrack.workspace.api.CreateWorkspaceRequest;
-import com.nextrack.workspace.api.WorkspaceResponse;
-import com.nextrack.workspace.domain.WorkspaceRole;
+import com.nextrack.identity.api.dto.request.LoginRequest;
+import com.nextrack.identity.api.dto.request.RegisterRequest;
+import com.nextrack.identity.api.dto.response.AuthResponse;
+import com.nextrack.project.api.dto.request.CreateProjectRequest;
+import com.nextrack.project.api.dto.response.ProjectResponse;
+import com.nextrack.project.domain.entity.ProjectRole;
+import com.nextrack.project.domain.repository.ProjectIssueCounterRepository;
+import com.nextrack.workspace.api.dto.request.CreateWorkspaceRequest;
+import com.nextrack.workspace.api.dto.response.WorkspaceResponse;
+import com.nextrack.workspace.domain.entity.WorkspaceRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

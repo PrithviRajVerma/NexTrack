@@ -1,7 +1,7 @@
 package com.nextrack.config;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.nextrack.identity.application.JwtTokenService;
+import com.nextrack.identity.application.service.JwtTokenService;
 import com.nextrack.shared.security.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
