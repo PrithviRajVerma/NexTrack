@@ -136,7 +136,7 @@ flowchart TD
     SUPERVISOR -.->|Reclaim Expired Leases| PG
 
     GH_WEBHOOK -->|POST /api/v1/integrations/github/webhooks| GatewaySecurity
-    PROV_SPI -->|REST Client (Bearer Installation Token)| GITHUB
+    PROV_SPI -->|REST Client - Bearer Installation Token| GITHUB
 ```
 
 ---
@@ -794,11 +794,11 @@ sequenceDiagram
     alt Token Found & is_revoked = false (Legitimate Rotation)
         API->>DB: UPDATE refresh_tokens SET is_revoked = true WHERE id = :id
         API->>DB: INSERT INTO refresh_tokens (token_family, token_hash=hash(v2), is_revoked=false, ...)
-        API-->>Client: 200 OK<br/>Body: { "accessToken": "new_rs256_jwt" }<br/>Set-Cookie: refresh_token_v2; HttpOnly; SameSite=Strict; Secure
+        API-->>Client: 200 OK<br/>Body: { "accessToken": "new_rs256_jwt" }<br/>Set-Cookie: refresh_token_v2 (HttpOnly, SameSite=Strict, Secure)
     else Token Found but is_revoked = true (Token Theft Detected!)
         Note over API, DB: Attacker attempted to reuse an already rotated token!
         API->>DB: UPDATE refresh_tokens SET is_revoked = true WHERE token_family = :family
-        API-->>Client: 401 Unauthorized (Security Breach Detected)<br/>Set-Cookie: refresh_token=deleted; Max-Age=0
+        API-->>Client: 401 Unauthorized (Security Breach Detected)<br/>Set-Cookie: refresh_token=deleted (Max-Age=0)
         Note over Client: All user sessions in this family invalidated immediately
     end
     deactivate API

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexTrack — Design System & Screen Gallery</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+            },
+            dark: {
+              bg: '#0A0C10',
+              surface: '#11141D',
+              card: '#161A26',
+              border: '#202637',
+              borderHover: '#2E374F',
+              text: '#F1F5F9',
+              muted: '#94A3B8',
+              subtle: '#64748B',
+            },
+            light: {
+              bg: '#F8FAFC',
+              surface: '#FFFFFF',
+              card: '#FFFFFF',
+              border: '#E2E8F0',
+              borderHover: '#CBD5E1',
+              text: '#0F172A',
+              muted: '#64748B',
+              subtle: '#94A3B8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    h1 { font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; }
+    h2 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; }
+    h3 { font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+    body { font-size: 0.875rem; line-height: 1.25rem; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #232A3E; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text min-h-screen font-sans antialiased selection:bg-brand-500/20 selection:text-brand-500 transition-colors duration-200">
+
+  <!-- Top App Navigation -->
+  <header class="border-b border-light-border dark:border-dark-border bg-light-surface/80 dark:bg-dark-surface/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white shadow-sm font-semibold tracking-wider text-sm">
+          NT
+        </div>
+        <div>
+          <div class="font-semibold text-sm tracking-tight flex items-center gap-2">
+            <span>NexTrack</span>
+            <span class="text-xs px-2 py-0.5 rounded font-mono font-medium bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Design System</span>
+          </div>
+          <p class="text-xs text-light-muted dark:text-dark-muted font-normal">Production Screen Specifications (architecture.md)</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <button id="themeToggle" class="p-2 rounded-lg border border-light-border dark:border-dark-border hover:bg-light-bg dark:hover:bg-dark-card transition-colors text-xs font-medium flex items-center gap-1.5" title="Toggle Dark/Light Mode">
+          <svg class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <span class="hidden sm:inline">Theme</span>
+        </button>
+        <a href="../architecture.md" class="text-xs px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border hover:bg-light-bg dark:hover:bg-dark-card transition-colors font-mono text-light-muted dark:text-dark-muted flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          architecture.md
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Overview -->
+  <main class="max-w-7xl mx-auto px-6 py-10">
+    <div class="mb-10 max-w-3xl">
+      <h1 class="text-2xl font-bold tracking-tight mb-2">NexTrack Interface Specifications</h1>
+      <p class="text-sm text-light-muted dark:text-dark-muted leading-relaxed">
+        Engineered for speed, developer traceability, and atomic concurrency controls. Built according to the technical requirements in <code class="font-mono text-xs px-1.5 py-0.5 rounded bg-light-border dark:bg-dark-border text-brand-600 dark:text-brand-400">architecture.md</code>. Select any screen below to inspect its dedicated interactive view.
+      </p>
+    </div>
+
+    <!-- Screen Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+
+      <!-- Screen 1: Kanban Board -->
+      <a href="01_kanban_board.html" class="group block p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/5 transition-all">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-mono text-xs font-semibold px-2.5 py-1 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Screen 01</span>
+          <span class="text-xs text-light-subtle dark:text-dark-subtle font-mono">Module 8.3 & 8.4</span>
+        </div>
+        <h2 class="text-base font-semibold tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">Interactive Kanban Board</h2>
+        <p class="text-xs text-light-muted dark:text-dark-muted mb-4 leading-relaxed">
+          5-column FSM workflow with drag-and-drop, optimistic UI updates, conflict simulation rollback (409 Conflict), priority badges, and GitHub PR indicators.
+        </p>
+        <div class="flex items-center justify-between text-xs pt-4 border-t border-light-border/60 dark:border-dark-border/60 text-light-muted dark:text-dark-muted">
+          <span class="font-mono text-[11px]">01_kanban_board.html</span>
+          <span class="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 text-brand-600 dark:text-brand-400 font-medium">Open screen →</span>
+        </div>
+      </a>
+
+      <!-- Screen 2: Issue Detail -->
+      <a href="02_issue_detail.html" class="group block p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/5 transition-all">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-mono text-xs font-semibold px-2.5 py-1 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Screen 02</span>
+          <span class="text-xs text-light-subtle dark:text-dark-subtle font-mono">Module 8.3 & 8.5</span>
+        </div>
+        <h2 class="text-base font-semibold tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">Issue Detail & Audit Timeline</h2>
+        <p class="text-xs text-light-muted dark:text-dark-muted mb-4 leading-relaxed">
+          Full issue aggregate NT-42 with FSM status transition guard, markdown description editor, interleaved audit activity log, VCS link panel, and attachments dropzone.
+        </p>
+        <div class="flex items-center justify-between text-xs pt-4 border-t border-light-border/60 dark:border-dark-border/60 text-light-muted dark:text-dark-muted">
+          <span class="font-mono text-[11px]">02_issue_detail.html</span>
+          <span class="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 text-brand-600 dark:text-brand-400 font-medium">Open screen →</span>
+        </div>
+      </a>
+
+      <!-- Screen 3: Backlog Planning -->
+      <a href="03_backlog_planning.html" class="group block p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/5 transition-all">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-mono text-xs font-semibold px-2.5 py-1 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Screen 03</span>
+          <span class="text-xs text-light-subtle dark:text-dark-subtle font-mono">Module 8.3</span>
+        </div>
+        <h2 class="text-base font-semibold tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">Backlog & Cycle Planning</h2>
+        <p class="text-xs text-light-muted dark:text-dark-muted mb-4 leading-relaxed">
+          High-density Linear-style backlog list, cycle groupings, story point rollups, batch management toolbar, and keyboard-first quick issue creator.
+        </p>
+        <div class="flex items-center justify-between text-xs pt-4 border-t border-light-border/60 dark:border-dark-border/60 text-light-muted dark:text-dark-muted">
+          <span class="font-mono text-[11px]">03_backlog_planning.html</span>
+          <span class="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 text-brand-600 dark:text-brand-400 font-medium">Open screen →</span>
+        </div>
+      </a>
+
+      <!-- Screen 4: Development Hub -->
+      <a href="04_development_hub.html" class="group block p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/5 transition-all">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-mono text-xs font-semibold px-2.5 py-1 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Screen 04</span>
+          <span class="text-xs text-light-subtle dark:text-dark-subtle font-mono">Module 8.8</span>
+        </div>
+        <h2 class="text-base font-semibold tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">Development Traceability Hub</h2>
+        <p class="text-xs text-light-muted dark:text-dark-muted mb-4 leading-relaxed">
+          Live Git branch tracking, commit stream with automated regex key extraction, Pull Requests with dual-field GitHub Actions CI statuses, and environment deploys.
+        </p>
+        <div class="flex items-center justify-between text-xs pt-4 border-t border-light-border/60 dark:border-dark-border/60 text-light-muted dark:text-dark-muted">
+          <span class="font-mono text-[11px]">04_development_hub.html</span>
+          <span class="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 text-brand-600 dark:text-brand-400 font-medium">Open screen →</span>
+        </div>
+      </a>
+
+      <!-- Screen 5: GitHub Integration -->
+      <a href="05_github_integration.html" class="group block p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/5 transition-all">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-mono text-xs font-semibold px-2.5 py-1 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Screen 05</span>
+          <span class="text-xs text-light-subtle dark:text-dark-subtle font-mono">Module 8.8 & Section 7.1</span>
+        </div>
+        <h2 class="text-base font-semibold tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">GitHub App & Webhook Ingestion</h2>
+        <p class="text-xs text-light-muted dark:text-dark-muted mb-4 leading-relaxed">
+          Cryptographic HMAC-SHA256 signature verification status, PostgreSQL webhook inbox queue telemetry, lease expiration supervisor, and poison-pill defense metrics.
+        </p>
+        <div class="flex items-center justify-between text-xs pt-4 border-t border-light-border/60 dark:border-dark-border/60 text-light-muted dark:text-dark-muted">
+          <span class="font-mono text-[11px]">05_github_integration.html</span>
+          <span class="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 text-brand-600 dark:text-brand-400 font-medium">Open screen →</span>
+        </div>
+      </a>
+
+      <!-- Screen 6: Project Settings & Members -->
+      <a href="06_project_settings_members.html" class="group block p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/5 transition-all">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-mono text-xs font-semibold px-2.5 py-1 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Screen 06</span>
+          <span class="text-xs text-light-subtle dark:text-dark-subtle font-mono">Module 8.1 & 8.2</span>
+        </div>
+        <h2 class="text-base font-semibold tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">Project Settings & Team RBAC</h2>
+        <p class="text-xs text-light-muted dark:text-dark-muted mb-4 leading-relaxed">
+          Workspace slug & project key config (`^[A-Z][A-Z0-9]{1,9}$`), atomic issue counter inspection (`last_issue_number = 42`), and member role inheritance manager.
+        </p>
+        <div class="flex items-center justify-between text-xs pt-4 border-t border-light-border/60 dark:border-dark-border/60 text-light-muted dark:text-dark-muted">
+          <span class="font-mono text-[11px]">06_project_settings_members.html</span>
+          <span class="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 text-brand-600 dark:text-brand-400 font-medium">Open screen →</span>
+        </div>
+      </a>
+
+      <!-- Screen 7: Auth & Workspace Selection -->
+      <a href="07_auth_onboarding.html" class="group block p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/5 transition-all">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-mono text-xs font-semibold px-2.5 py-1 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">Screen 07</span>
+          <span class="text-xs text-light-subtle dark:text-dark-subtle font-mono">Module 8.1 & Section 7.4</span>
+        </div>
+        <h2 class="text-base font-semibold tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">Authentication & Session Security</h2>
+        <p class="text-xs text-light-muted dark:text-dark-muted mb-4 leading-relaxed">
+          Register and login flows with BCrypt strength enforcement, multi-tenant workspace selector, RS256 token indicators, and family theft detection inspector.
+        </p>
+        <div class="flex items-center justify-between text-xs pt-4 border-t border-light-border/60 dark:border-dark-border/60 text-light-muted dark:text-dark-muted">
+          <span class="font-mono text-[11px]">07_auth_onboarding.html</span>
+          <span class="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 text-brand-600 dark:text-brand-400 font-medium">Open screen →</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Design System Tokens & Quality Standards -->
+    <div class="p-8 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+      <h3 class="text-base font-semibold tracking-tight mb-4">Architectural Design Guarantees Implemented</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-xs">
+        <div>
+          <div class="font-semibold text-brand-600 dark:text-brand-400 mb-1">Operate Mode UI</div>
+          <p class="text-light-muted dark:text-dark-muted leading-relaxed">High information density, standard keyboard navigability, zero gratuitous animation, scanability over ornamentation.</p>
+        </div>
+        <div>
+          <div class="font-semibold text-brand-600 dark:text-brand-400 mb-1">Token System</div>
+          <p class="text-light-muted dark:text-dark-muted leading-relaxed">Dark obsidian palette (`#0A0C10`), crisp 1px borders (`#202637`), Inter for typography, JetBrains Mono for keys and hashes.</p>
+        </div>
+        <div>
+          <div class="font-semibold text-brand-600 dark:text-brand-400 mb-1">State Coverage</div>
+          <p class="text-light-muted dark:text-dark-muted leading-relaxed">Full interactive coverage: default, hover, active, focus-visible rings, optimistic conflict simulation, and empty states.</p>
+        </div>
+        <div>
+          <div class="font-semibold text-brand-600 dark:text-brand-400 mb-1">VCS Traceability</div>
+          <p class="text-light-muted dark:text-dark-muted leading-relaxed">Direct representation of GitHub App installations, branches, commits, PR review status, and CI/CD workflow runs.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Theme toggle logic
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+
+    themeToggle.addEventListener('click', () => {
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+
+    if (localStorage.getItem('theme') === 'light') {
+      html.classList.remove('dark');
+    }
+  </script>
+</body>
+</html>

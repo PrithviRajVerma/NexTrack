@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexTrack — Development Traceability Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+            },
+            dark: {
+              bg: '#0A0C10',
+              surface: '#11141D',
+              card: '#161A26',
+              border: '#202637',
+              borderHover: '#2E374F',
+              text: '#F1F5F9',
+              muted: '#94A3B8',
+              subtle: '#64748B',
+            },
+            light: {
+              bg: '#F8FAFC',
+              surface: '#FFFFFF',
+              card: '#FFFFFF',
+              border: '#E2E8F0',
+              borderHover: '#CBD5E1',
+              text: '#0F172A',
+              muted: '#64748B',
+              subtle: '#94A3B8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    h1 { font-size: 1.75rem; line-height: 2.25rem; font-weight: 700; }
+    h2 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; }
+    h3 { font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+    body { font-size: 0.875rem; line-height: 1.25rem; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #232A3E; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text min-h-screen font-sans antialiased selection:bg-brand-500/20 selection:text-brand-500 transition-colors duration-200">
+
+  <!-- Top App Navigation Bar -->
+  <header class="border-b border-light-border dark:border-dark-border bg-light-surface/90 dark:bg-dark-surface/90 backdrop-blur sticky top-0 z-40">
+    <div class="px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <a href="index.html" class="flex items-center space-x-2.5 group">
+          <div class="w-7 h-7 rounded bg-brand-600 flex items-center justify-center text-white text-xs font-semibold tracking-wider">NT</div>
+          <span class="font-semibold text-sm tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">NexTrack</span>
+        </a>
+        <div class="h-4 w-px bg-light-border dark:border-dark-border"></div>
+        <div class="flex items-center space-x-2 text-xs font-medium">
+          <span class="text-light-muted dark:text-dark-muted">Acme Engineering</span>
+          <span class="text-light-subtle dark:text-dark-subtle">/</span>
+          <span class="font-semibold">Development Hub</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center space-x-1 text-xs font-medium">
+        <a href="01_kanban_board.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">Board</a>
+        <a href="02_issue_detail.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">Issue NT-42</a>
+        <a href="03_backlog_planning.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">Backlog</a>
+        <a href="04_development_hub.html" class="px-3 py-1.5 rounded-lg bg-light-bg dark:bg-dark-card text-brand-600 dark:text-brand-400 font-semibold">Development</a>
+        <a href="05_github_integration.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">GitHub App</a>
+        <a href="06_project_settings_members.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">Settings</a>
+      </nav>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-2">
+        <button id="themeToggle" class="p-1.5 rounded-lg border border-light-border dark:border-dark-border hover:bg-light-bg dark:hover:bg-dark-card transition-colors" title="Toggle Theme">
+          <svg class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+        <button onclick="document.getElementById('manualLinkModal').classList.remove('hidden')" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
+          <span>+ Manual Link</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- Page Title & Overview Stats -->
+    <div class="mb-8 pb-4 border-b border-light-border dark:border-dark-border flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight mb-1">Development & Delivery Traceability</h1>
+        <p class="text-xs text-light-muted dark:text-dark-muted">Automated linking of Git branches, commits, PRs, and GitHub Actions CI pipelines (Module 8.8)</p>
+      </div>
+      <div class="flex items-center space-x-3 text-xs font-mono">
+        <div class="px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <span class="text-light-subtle dark:text-dark-subtle">Tracked Repos:</span>
+          <span class="font-bold text-light-text dark:text-dark-text ml-1">2</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <span class="text-light-subtle dark:text-dark-subtle">CI Success:</span>
+          <span class="font-bold text-emerald-500 ml-1">98.4%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Environments Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+      
+      <!-- Production Environment Card -->
+      <div class="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <h2 class="text-sm font-semibold tracking-tight">Production Environment</h2>
+          </div>
+          <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">v1.4.2 (Healthy)</span>
+        </div>
+        <div class="space-y-1.5 text-xs text-light-muted dark:text-dark-muted font-mono">
+          <div class="flex justify-between">
+            <span>Commit:</span>
+            <span class="text-brand-500 font-semibold">7f92a1c · feat(auth): add rate limiting</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Deployment Run:</span>
+            <span class="text-light-text dark:text-dark-text">#892 via GitHub Actions</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Uptime:</span>
+            <span class="text-emerald-500 font-medium">99.98% · Deployed 2h ago</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Staging Environment Card -->
+      <div class="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <h2 class="text-sm font-semibold tracking-tight">Staging Environment</h2>
+          </div>
+          <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">v1.5.0-rc.3</span>
+        </div>
+        <div class="space-y-1.5 text-xs text-light-muted dark:text-dark-muted font-mono">
+          <div class="flex justify-between">
+            <span>Commit:</span>
+            <span class="text-brand-500 font-semibold">c3a819b · refactor(identity): token revoker</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Deployment Run:</span>
+            <span class="text-light-text dark:text-dark-text">#893 in progress...</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Status:</span>
+            <span class="text-amber-500 font-medium">Deploying containers to cluster</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Pull Requests Live Traceability Table -->
+    <div class="p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-sm mb-8">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-light-border dark:border-dark-border">
+        <div class="flex items-center space-x-2">
+          <h2 class="text-sm font-semibold tracking-tight">Pull Requests & CI/CD Pipelines</h2>
+          <span class="text-xs font-mono text-light-muted dark:text-dark-muted">(Auto-linked via issue keys)</span>
+        </div>
+        <span class="text-xs font-mono text-light-subtle dark:text-dark-subtle">nextrack/backend-service</span>
+      </div>
+
+      <div class="divide-y divide-light-border/60 dark:divide-dark-border/60 text-xs">
+        
+        <!-- PR #142 -->
+        <div class="py-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="space-y-1 max-w-xl">
+            <div class="flex items-center space-x-2.5">
+              <span class="font-mono text-xs font-semibold text-purple-500">#142</span>
+              <span class="font-semibold text-light-text dark:text-dark-text">Fix token reuse family revoker & emergency kill</span>
+              <span class="px-1.5 py-0.5 text-[10px] rounded font-mono font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">Merged</span>
+            </div>
+            <div class="text-[11px] text-light-muted dark:text-dark-muted font-mono flex items-center gap-2">
+              <span>feat/NT-42-rtr → main</span>
+              <span>·</span>
+              <span>By Alice Chen</span>
+              <span>·</span>
+              <a href="02_issue_detail.html" class="text-brand-500 hover:underline font-bold">NT-42</a>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4 font-mono text-[11px]">
+            <span class="text-emerald-500 font-semibold flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>14/14 CI Passed</span>
+            </span>
+            <span class="text-light-subtle dark:text-dark-subtle">2 Approvals</span>
+          </div>
+        </div>
+
+        <!-- PR #143 -->
+        <div class="py-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="space-y-1 max-w-xl">
+            <div class="flex items-center space-x-2.5">
+              <span class="font-mono text-xs font-semibold text-emerald-500">#143</span>
+              <span class="font-semibold text-light-text dark:text-dark-text">Pre-parsing raw-byte HMAC-SHA256 signature filter</span>
+              <span class="px-1.5 py-0.5 text-[10px] rounded font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Open</span>
+            </div>
+            <div class="text-[11px] text-light-muted dark:text-dark-muted font-mono flex items-center gap-2">
+              <span>feat/NT-43-hmac → main</span>
+              <span>·</span>
+              <span>By Bob Martinez</span>
+              <span>·</span>
+              <span class="text-brand-500 font-bold">NT-43</span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4 font-mono text-[11px]">
+            <span class="text-amber-500 font-semibold flex items-center gap-1 animate-pulse">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Running Checks (Step 4/7)</span>
+            </span>
+            <span class="text-light-subtle dark:text-dark-subtle">Review requested</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Git Commit Ingestion Stream -->
+    <div class="p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-sm">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-light-border dark:border-dark-border">
+        <h2 class="text-sm font-semibold tracking-tight">Recent Ingested Commits</h2>
+        <span class="text-xs font-mono text-light-muted dark:text-dark-muted">Regex Pattern: \b([A-Z][A-Z0-9]{1,9})-(\d+)\b</span>
+      </div>
+
+      <div class="divide-y divide-light-border/60 dark:divide-dark-border/60 font-mono text-xs">
+        
+        <div class="py-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-3 truncate">
+            <span class="text-brand-500 font-bold">c3a819b</span>
+            <span class="font-sans text-light-text dark:text-dark-text truncate">refactor(identity): add token family theft revoker</span>
+          </div>
+          <div class="flex items-center space-x-3 text-[11px]">
+            <a href="02_issue_detail.html" class="px-2 py-0.5 rounded bg-brand-500/10 text-brand-500 border border-brand-500/20 font-bold hover:underline">NT-42</a>
+            <span class="text-light-subtle dark:text-dark-subtle text-[10px]">2h ago</span>
+          </div>
+        </div>
+
+        <div class="py-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-3 truncate">
+            <span class="text-brand-500 font-bold">8f12d4a</span>
+            <span class="font-sans text-light-text dark:text-dark-text truncate">test(identity): assert family invalidation upon token reuse</span>
+          </div>
+          <div class="flex items-center space-x-3 text-[11px]">
+            <a href="02_issue_detail.html" class="px-2 py-0.5 rounded bg-brand-500/10 text-brand-500 border border-brand-500/20 font-bold hover:underline">NT-42</a>
+            <span class="text-light-subtle dark:text-dark-subtle text-[10px]">3h ago</span>
+          </div>
+        </div>
+
+        <div class="py-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-3 truncate">
+            <span class="text-brand-500 font-bold">4b190ee</span>
+            <span class="font-sans text-light-text dark:text-dark-text truncate">feat(webhooks): bounded 2MB stream filter</span>
+          </div>
+          <div class="flex items-center space-x-3 text-[11px]">
+            <span class="px-2 py-0.5 rounded bg-brand-500/10 text-brand-500 border border-brand-500/20 font-bold">NT-43</span>
+            <span class="text-light-subtle dark:text-dark-subtle text-[10px]">4h ago</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Manual Link Modal -->
+  <div id="manualLinkModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+    <div class="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6 w-full max-w-md shadow-2xl">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-light-border dark:border-dark-border">
+        <h2 class="text-sm font-semibold tracking-tight">Manual VCS Association (Fallback)</h2>
+        <button onclick="document.getElementById('manualLinkModal').classList.add('hidden')" class="text-light-muted dark:text-dark-muted">✕</button>
+      </div>
+      <form onsubmit="handleManualLink(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Target Issue Key</label>
+          <input type="text" id="targetIssueKey" value="NT-42" class="w-full px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg font-mono">
+        </div>
+        <div>
+          <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Artifact Type</label>
+          <select id="linkType" class="w-full px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg">
+            <option value="COMMIT">Git Commit SHA</option>
+            <option value="PULL_REQUEST">Pull Request Number</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Identifier (SHA or PR #)</label>
+          <input type="text" id="linkIdentifier" required placeholder="e.g. 5e91f0a or 145" class="w-full px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg font-mono">
+        </div>
+        <div class="pt-3 border-t border-light-border dark:border-dark-border flex justify-end space-x-2">
+          <button type="button" onclick="document.getElementById('manualLinkModal').classList.add('hidden')" class="px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border">Cancel</button>
+          <button type="submit" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold">Associate Artifact</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+    if (localStorage.getItem('theme') === 'light') html.classList.remove('dark');
+
+    function handleManualLink(e) {
+      e.preventDefault();
+      const issue = document.getElementById('targetIssueKey').value;
+      const type = document.getElementById('linkType').value;
+      const id = document.getElementById('linkIdentifier').value;
+
+      alert(`Manual VCS association committed!\nLinked ${type} ${id} to issue ${issue} with link_type = 'MANUAL'.`);
+      document.getElementById('manualLinkModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

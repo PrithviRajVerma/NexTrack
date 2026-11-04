@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexTrack — Project Settings & Team RBAC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+            },
+            dark: {
+              bg: '#0A0C10',
+              surface: '#11141D',
+              card: '#161A26',
+              border: '#202637',
+              borderHover: '#2E374F',
+              text: '#F1F5F9',
+              muted: '#94A3B8',
+              subtle: '#64748B',
+            },
+            light: {
+              bg: '#F8FAFC',
+              surface: '#FFFFFF',
+              card: '#FFFFFF',
+              border: '#E2E8F0',
+              borderHover: '#CBD5E1',
+              text: '#0F172A',
+              muted: '#64748B',
+              subtle: '#94A3B8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    h1 { font-size: 1.75rem; line-height: 2.25rem; font-weight: 700; }
+    h2 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; }
+    h3 { font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+    body { font-size: 0.875rem; line-height: 1.25rem; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #232A3E; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text min-h-screen font-sans antialiased selection:bg-brand-500/20 selection:text-brand-500 transition-colors duration-200">
+
+  <!-- Top App Navigation Bar -->
+  <header class="border-b border-light-border dark:border-dark-border bg-light-surface/90 dark:bg-dark-surface/90 backdrop-blur sticky top-0 z-40">
+    <div class="px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <a href="index.html" class="flex items-center space-x-2.5 group">
+          <div class="w-7 h-7 rounded bg-brand-600 flex items-center justify-center text-white text-xs font-semibold tracking-wider">NT</div>
+          <span class="font-semibold text-sm tracking-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">NexTrack</span>
+        </a>
+        <div class="h-4 w-px bg-light-border dark:border-dark-border"></div>
+        <div class="flex items-center space-x-2 text-xs font-medium">
+          <span class="text-light-muted dark:text-dark-muted">Acme Engineering</span>
+          <span class="text-light-subtle dark:text-dark-subtle">/</span>
+          <span class="font-semibold">Project & Member Settings</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center space-x-1 text-xs font-medium">
+        <a href="01_kanban_board.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">Board</a>
+        <a href="02_issue_detail.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">Issue NT-42</a>
+        <a href="03_backlog_planning.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">Backlog</a>
+        <a href="04_development_hub.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">Development</a>
+        <a href="05_github_integration.html" class="px-3 py-1.5 rounded-lg text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-card transition-colors">GitHub App</a>
+        <a href="06_project_settings_members.html" class="px-3 py-1.5 rounded-lg bg-light-bg dark:bg-dark-card text-brand-600 dark:text-brand-400 font-semibold">Settings</a>
+      </nav>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-2">
+        <button id="themeToggle" class="p-1.5 rounded-lg border border-light-border dark:border-dark-border hover:bg-light-bg dark:hover:bg-dark-card transition-colors" title="Toggle Theme">
+          <svg class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+        <button onclick="document.getElementById('inviteModal').classList.remove('hidden')" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
+          <span>+ Invite Member</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+
+    <div class="mb-8 pb-4 border-b border-light-border dark:border-dark-border">
+      <h1 class="text-xl font-bold tracking-tight mb-1">Project Settings & Multi-Tenant RBAC</h1>
+      <p class="text-xs text-light-muted dark:text-dark-muted">Manage uppercase project key constraints, atomic issue counter rows, and hierarchical role inheritance (Module 8.1 & 8.2)</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+
+      <!-- Left Column (2 Cols): Project Settings & Counter State -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Project Identification & Key Validation Card -->
+        <div class="p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-sm">
+          <h2 class="text-sm font-semibold tracking-tight mb-4 pb-3 border-b border-light-border dark:border-dark-border">Project Configuration</h2>
+          
+          <form onsubmit="handleSaveSettings(event)" class="space-y-4 text-xs">
+            <div>
+              <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Project Name</label>
+              <input type="text" value="NexTrack Core Engine" class="w-full px-3 py-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg focus:outline-none focus:border-brand-500">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Project Key (Prefix)</label>
+                <input type="text" id="projectKeyInput" value="NT" class="w-full px-3 py-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg font-mono uppercase focus:outline-none focus:border-brand-500 font-bold">
+                <div class="text-[10px] text-light-subtle dark:text-dark-subtle font-mono mt-1">Regex: ^[A-Z][A-Z0-9]{1,9}$</div>
+              </div>
+              <div>
+                <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Enclosing Workspace</label>
+                <input type="text" value="Acme Engineering (acme-eng)" disabled class="w-full px-3 py-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/50 text-light-subtle dark:text-dark-subtle cursor-not-allowed">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Project Description</label>
+              <textarea rows="2" class="w-full px-3 py-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg focus:outline-none focus:border-brand-500">Core software delivery engine, webhook inbox queues, and Git traceability adapters.</textarea>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button type="submit" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold transition-colors">Save Changes</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Atomic Issue Counter Inspection (ADR-1) -->
+        <div class="p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-sm">
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-light-border dark:border-dark-border">
+            <h2 class="text-sm font-semibold tracking-tight">PostgreSQL Atomic Issue Counter</h2>
+            <span class="px-2 py-0.5 rounded font-mono text-[10px] bg-brand-500/10 text-brand-500 border border-brand-500/20">project_issue_counters</span>
+          </div>
+
+          <p class="text-xs text-light-muted dark:text-dark-muted mb-4 leading-relaxed">
+            Sequential numbers are generated via row-level atomic increment (<code class="font-mono text-xs">UPDATE ... SET last_issue_number = last_issue_number + 1 RETURNING</code>) inside the transactional boundary. If secondary business validation fails, transaction rollback restores the counter to eliminate sequence gaps.
+          </p>
+
+          <div class="grid grid-cols-3 gap-4 font-mono text-xs text-center pt-3 border-t border-light-border dark:border-dark-border">
+            <div class="p-2">
+              <div class="text-[10px] text-light-subtle dark:text-dark-subtle mb-1">Last Allocated</div>
+              <div class="text-lg font-bold text-light-text dark:text-dark-text">42</div>
+              <div class="text-[10px] text-brand-500 font-semibold">NT-42</div>
+            </div>
+            <div class="p-2">
+              <div class="text-[10px] text-light-subtle dark:text-dark-subtle mb-1">Next Sequence</div>
+              <div class="text-lg font-bold text-emerald-500">43</div>
+              <div class="text-[10px] text-emerald-500 font-semibold">NT-43</div>
+            </div>
+            <div class="p-2">
+              <div class="text-[10px] text-light-subtle dark:text-dark-subtle mb-1">Sequence Gaps</div>
+              <div class="text-lg font-bold text-light-text dark:text-dark-text">0</div>
+              <div class="text-[10px] text-light-subtle dark:text-dark-subtle">Rollback Safe</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column (1 Col): Hierarchical RBAC Reference -->
+      <div class="space-y-6">
+        <div class="p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-sm text-xs">
+          <h2 class="text-sm font-semibold tracking-tight mb-3 pb-2 border-b border-light-border dark:border-dark-border">Role Hierarchy Invariant</h2>
+          
+          <div class="space-y-3 leading-relaxed text-light-muted dark:text-dark-muted">
+            <p>
+              <span class="font-semibold text-light-text dark:text-dark-text">Workspace Inheritance:</span> A user must possess an active <code class="font-mono text-xs">WorkspaceMembership</code> before they can be assigned a role in any enclosed Project.
+            </p>
+            <p>
+              <span class="font-semibold text-light-text dark:text-dark-text">Cascade Revocation:</span> If a workspace admin revokes a user's workspace membership, access to all nested projects is severed immediately.
+            </p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-light-border dark:border-dark-border space-y-2 font-mono text-[11px]">
+            <div class="flex justify-between">
+              <span class="text-light-subtle dark:text-dark-subtle">WORKSPACE_ADMIN</span>
+              <span class="text-light-text dark:text-dark-text">Full tenant control</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-light-subtle dark:text-dark-subtle">PROJECT_ADMIN</span>
+              <span class="text-light-text dark:text-dark-text">Project & member management</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-light-subtle dark:text-dark-subtle">CONTRIBUTOR</span>
+              <span class="text-light-text dark:text-dark-text">Create & edit issues</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-light-subtle dark:text-dark-subtle">VIEWER</span>
+              <span class="text-light-text dark:text-dark-text">Read-only board access</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Team Members Directory Table -->
+    <div class="p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-sm">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-light-border dark:border-dark-border">
+        <div>
+          <h2 class="text-sm font-semibold tracking-tight">Active Project Members</h2>
+          <span class="text-xs text-light-muted dark:text-dark-muted">4 users assigned to Project NT</span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="border-b border-light-border dark:border-dark-border text-light-subtle dark:text-dark-subtle font-medium">
+              <th class="pb-2.5">User</th>
+              <th class="pb-2.5">Email</th>
+              <th class="pb-2.5">Workspace Role</th>
+              <th class="pb-2.5">Project Role</th>
+              <th class="pb-2.5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-light-border/60 dark:divide-dark-border/60">
+            <tr>
+              <td class="py-3 flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-full bg-indigo-600 text-white font-semibold text-[10px] flex items-center justify-center">AC</div>
+                <span class="font-medium text-light-text dark:text-dark-text">Alice Chen</span>
+              </td>
+              <td class="py-3 font-mono text-light-muted dark:text-dark-muted">alice@example.com</td>
+              <td class="py-3 font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold">WORKSPACE_ADMIN</span>
+              </td>
+              <td class="py-3 font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-brand-500/10 text-brand-500 border border-brand-500/20 font-bold">PROJECT_ADMIN</span>
+              </td>
+              <td class="py-3 text-right text-light-subtle dark:text-dark-subtle">Owner</td>
+            </tr>
+
+            <tr>
+              <td class="py-3 flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-full bg-emerald-600 text-white font-semibold text-[10px] flex items-center justify-center">BM</div>
+                <span class="font-medium text-light-text dark:text-dark-text">Bob Martinez</span>
+              </td>
+              <td class="py-3 font-mono text-light-muted dark:text-dark-muted">bob@example.com</td>
+              <td class="py-3 font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate-500/10 text-slate-400 border border-slate-500/20">MEMBER</span>
+              </td>
+              <td class="py-3 font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold">CONTRIBUTOR</span>
+              </td>
+              <td class="py-3 text-right">
+                <button class="text-rose-500 hover:underline">Remove</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="py-3 flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-full bg-slate-600 text-white font-semibold text-[10px] flex items-center justify-center">DZ</div>
+                <span class="font-medium text-light-text dark:text-dark-text">Devin Zhao</span>
+              </td>
+              <td class="py-3 font-mono text-light-muted dark:text-dark-muted">devin@example.com</td>
+              <td class="py-3 font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate-500/10 text-slate-400 border border-slate-500/20">MEMBER</span>
+              </td>
+              <td class="py-3 font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold">CONTRIBUTOR</span>
+              </td>
+              <td class="py-3 text-right">
+                <button class="text-rose-500 hover:underline">Remove</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="py-3 flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-full bg-amber-600 text-white font-semibold text-[10px] flex items-center justify-center">SC</div>
+                <span class="font-medium text-light-text dark:text-dark-text">Sarah Connor</span>
+              </td>
+              <td class="py-3 font-mono text-light-muted dark:text-dark-muted">sarah@example.com</td>
+              <td class="py-3 font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate-500/10 text-slate-400 border border-slate-500/20">MEMBER</span>
+              </td>
+              <td class="py-3 font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-sky-500/10 text-sky-500 border border-sky-500/20">VIEWER</span>
+              </td>
+              <td class="py-3 text-right">
+                <button class="text-rose-500 hover:underline">Remove</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Invite Member Modal -->
+  <div id="inviteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+    <div class="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6 w-full max-w-md shadow-2xl">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-light-border dark:border-dark-border">
+        <h2 class="text-sm font-semibold tracking-tight">Assign Project Member</h2>
+        <button onclick="document.getElementById('inviteModal').classList.add('hidden')" class="text-light-muted dark:text-dark-muted">✕</button>
+      </div>
+      <form onsubmit="handleInvite(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Select User from Workspace</label>
+          <select id="inviteUser" class="w-full px-3 py-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg">
+            <option value="Elena Rostova">Elena Rostova (elena@example.com)</option>
+            <option value="Marcus Thorne">Marcus Thorne (marcus@example.com)</option>
+          </select>
+          <div class="text-[10px] text-light-subtle dark:text-dark-subtle mt-1">Only active members of Acme Engineering can be added.</div>
+        </div>
+        <div>
+          <label class="block font-medium text-light-muted dark:text-dark-muted mb-1">Assigned Project Role</label>
+          <select id="inviteRole" class="w-full px-3 py-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg font-mono">
+            <option value="CONTRIBUTOR" selected>CONTRIBUTOR (Create, edit, transition issues)</option>
+            <option value="VIEWER">VIEWER (Read-only)</option>
+            <option value="PROJECT_ADMIN">PROJECT_ADMIN (Full project settings control)</option>
+          </select>
+        </div>
+        <div class="pt-3 border-t border-light-border dark:border-dark-border flex justify-end space-x-2">
+          <button type="button" onclick="document.getElementById('inviteModal').classList.add('hidden')" class="px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border">Cancel</button>
+          <button type="submit" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold">Grant Access</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+    if (localStorage.getItem('theme') === 'light') html.classList.remove('dark');
+
+    function handleSaveSettings(e) {
+      e.preventDefault();
+      const key = document.getElementById('projectKeyInput').value.trim();
+      const regex = /^[A-Z][A-Z0-9]{1,9}$/;
+      if (!regex.test(key)) {
+        alert('Invalid Project Key:\nProject key must start with an uppercase letter, contain only uppercase alphanumeric characters, and be between 2 and 10 characters long (e.g. NT, CORE).');
+        return;
+      }
+      alert(`Project settings saved successfully!\nProject key '${key}' verified against schema constraint uq_projects_workspace_project_key.`);
+    }
+
+    function handleInvite(e) {
+      e.preventDefault();
+      const user = document.getElementById('inviteUser').value;
+      const role = document.getElementById('inviteRole').value;
+      alert(`Member added!\nGranted ${role} role to ${user}.\nWorkspace membership inheritance invariant verified.`);
+      document.getElementById('inviteModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
