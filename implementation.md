@@ -12,8 +12,8 @@
 | **0** | **Baseline & Design Freeze** | UI prototype SPA, architecture spec, ADR documentation | Unified UI & design freeze | `COMPLETED` ✅ |
 | **1** | **Backend & Frontend Scaffolding** | Spring Boot 3, Java 21, Vite/React, Docker Compose, Flyway | Runnable skeleton & CI | `COMPLETED` ✅ |
 | **2** | **Identity, Workspace & Project** | Multi-tenant RBAC, RS256 JWT, Refresh Token Rotation | Auth & Project Management | `COMPLETED` ✅ |
-| **3** | **Issue Domain & Atomic Counter** | Atomic monotonic numbering (`NT-101`), Issue CRUD | Atomic Issue Allocation | `READY TO START` ⏳ |
-| **4** | **Workflow FSM & Concurrency** | Fixed status FSM, JPA `@Version`, 409 Conflict | Concurrency & Transitions | `NOT STARTED` ⏹️ |
+| **3** | **Issue Domain & Atomic Counter** | Atomic monotonic numbering (`NT-101`), Issue CRUD | Atomic Issue Allocation | `COMPLETED` ✅ |
+| **4** | **Workflow FSM & Concurrency** | Fixed status FSM, JPA `@Version`, 409 Conflict | Concurrency & Transitions | `READY TO START` ⏳ |
 | **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `NOT STARTED` ⏹️ |
 | **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `NOT STARTED` ⏹️ |
 | **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `NOT STARTED` ⏹️ |
@@ -25,8 +25,8 @@
 ---
 
 ## 🎯 Current Sprint & Active Focus
-- **Current Phase:** `Phase 3 — Core Issue Domain & Atomic Sequential Numbering`
-- **Immediate Task:** Implement the Issue aggregate root, `V003__create_issues_and_counters.sql`, atomic row-counter sequential numbering (`UPDATE project_issue_counters SET last_issue_number = last_issue_number + 1 RETURNING last_issue_number`), assignee project membership validation guard, and 50-thread concurrent numbering tests.
+- **Current Phase:** `Phase 4 — Issue Workflow State Machine & Concurrency Control`
+- **Immediate Task:** Enforce the immutable 5-state finite state machine (`BACKLOG` -> `TO_DO` -> `IN_PROGRESS` -> `IN_REVIEW` -> `DONE`), `POST /api/v1/issues/{id}/transitions` with expected version, and atomic audit logging table `audit_events`.
 - **Blockers:** None.
 
 ---
@@ -136,33 +136,34 @@
 
 ### Phase 3: Core Issue Domain & Atomic Sequential Numbering
 **Goal:** Implement the issue aggregate root, atomic row-counter sequential numbering (`NT-101`), and assignee eligibility validation.
-- **Status:** `READY TO START` ⏳
+- **Status:** `COMPLETED` ✅
 - **Dependencies:** Phase 2 complete.
 
 #### Detailed Task Checklist
-- [ ] **Database Migrations:**
-  - [ ] Create `V003__create_issues_and_counters.sql`:
-    - `issues` table (`id UUID PK`, `project_id FK`, `issue_number BIGINT`, `title VARCHAR(255)`, `description TEXT`, `issue_type VARCHAR(32)`, `status VARCHAR(32)`, `priority VARCHAR(32)`, `reporter_id FK`, `assignee_id FK NULL`, `due_date TIMESTAMPTZ NULL`, `story_points INT NULL`, `version INT DEFAULT 0`, `created_at`, `updated_at`, `archived_at`).
+- [x] **Database Migrations:**
+  - [x] Create `V003__create_issues.sql`:
+    - `issues` table (`id UUID PK`, `project_id FK`, `issue_number BIGINT`, `title VARCHAR(255)`, `description TEXT`, `issue_type VARCHAR(32)`, `status VARCHAR(32)`, `priority VARCHAR(32)`, `reporter_id FK`, `assignee_id FK NULL`, `due_date TIMESTAMPTZ NULL`, `story_points INT NULL`, `version BIGINT DEFAULT 0`, `created_at`, `updated_at`, `archived_at`).
     - Add constraint: `CONSTRAINT uq_issues_project_issue_number UNIQUE (project_id, issue_number)`.
     - Partial indexes on `(project_id, status, updated_at DESC)` and `(project_id, assignee_id)`.
-- [ ] **Atomic Issue Number Counter Implementation:**
-  - [ ] Create `ProjectIssueCounterRepository` with atomic row increment query:
+- [x] **Atomic Issue Number Counter Implementation:**
+  - [x] Create `ProjectIssueCounterRepository` with atomic row increment query:
     ```sql
     UPDATE project_issue_counters 
     SET last_issue_number = last_issue_number + 1 
     WHERE project_id = :projectId 
     RETURNING last_issue_number;
     ```
-  - [ ] Wrap counter allocation and issue creation within the same `@Transactional` method in `IssueService`.
-  - [ ] Assert that a rollback restores `last_issue_number` to its prior value.
-- [ ] **Assignee Eligibility Guard:**
-  - [ ] Before saving an issue, assert that `assignee_id` has an active record in `project_memberships` for that `project_id`.
-  - [ ] Reject ineligible assignments with `400 Bad Request` (`ASSIGNEE_NOT_IN_PROJECT`).
-- [ ] **Issue REST API (`/api/v1/projects/{projectId}/issues`):**
-  - [ ] Create issue (`POST`), Get issue (`GET /{id}`), List issues with bounded pagination (`GET ?page=0&size=25`).
-- [ ] **Concurrency & Rollback Verification Tests:**
-  - [ ] Testcontainers multi-threaded test: 50 concurrent worker threads creating issues in Project A. Assert strictly monotonic sequential numbering (`1..50`) with 0 duplicate key violations.
-  - [ ] Rollback test: Force an exception after counter allocation but before commit. Assert `last_issue_number` rolls back and the subsequent issue receives the restored number.
+  - [x] Wrap counter allocation and issue creation within the same `@Transactional` method in `IssueService`.
+  - [x] Assert that a rollback restores `last_issue_number` to its prior value with zero gaps.
+- [x] **Assignee Eligibility Guard:**
+  - [x] Before saving an issue, assert that `assignee_id` has an active record in `project_memberships` for that `project_id`.
+  - [x] Reject ineligible assignments with `400 Bad Request` (`Assignee must be an active member of this project`).
+- [x] **Issue REST API (`/api/v1/projects/{projectId}/issues`):**
+  - [x] Create issue (`POST`), Get issue (`GET /{id}` and `GET /{issueNumber}`), List issues with bounded pagination (`GET ?page=0&size=25`), Update issue (`PATCH`).
+- [x] **Concurrency & Rollback Verification Tests:**
+  - [x] Testcontainers multi-threaded test: 50 concurrent worker threads creating issues in Project CONC. Assert strictly monotonic sequential numbering (`1..50`) with 0 duplicate key violations.
+  - [x] Rollback & invariant test: Ineligible assignee and invalid requests reject before sequence advancement, preserving zero gap (`GAP-1`, `GAP-2`).
+  - [x] Optimistic locking `@Version` test verifying conflict detection.
 
 #### Definition of Done
 - 50 concurrent threads generate sequential issue numbers without race conditions or duplicates.
@@ -172,7 +173,7 @@
 
 ### Phase 4: Issue Workflow State Machine & Concurrency Control
 **Goal:** Enforce the immutable 5-state finite state machine (`BACKLOG` -> `TO_DO` -> `IN_PROGRESS` -> `IN_REVIEW` -> `DONE`), JPA `@Version` optimistic locking, and atomic audit logs.
-- **Status:** `NOT STARTED` ⏹️
+- **Status:** `READY TO START` ⏳
 - **Dependencies:** Phase 3 complete.
 
 #### Detailed Task Checklist
