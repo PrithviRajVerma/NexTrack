@@ -113,6 +113,32 @@ public class ProjectService {
         return membershipRepository.existsByProjectIdAndUserId(projectId, userId);
     }
 
+    @Transactional
+    public long allocateNextIssueNumber(UUID projectId) {
+        return counterRepository.incrementAndGet(projectId);
+    }
+
+    @Transactional(readOnly = true)
+    public String getProjectKey(UUID projectId) {
+        return projectRepository.findById(projectId)
+                .map(Project::getProjectKey)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public Project getProjectById(UUID projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+    }
+
+    public void assertUserCanContribute(UUID projectId, UUID userId) {
+        ProjectMembership membership = membershipRepository.findByProjectIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new AccessDeniedException("User is not a member of this project"));
+        if (membership.getRole() == ProjectRole.VIEWER) {
+            throw new AccessDeniedException("Operation requires CONTRIBUTOR or PROJECT_ADMIN privileges");
+        }
+    }
+
     public void assertUserIsProjectAdmin(UUID projectId, UUID userId) {
         ProjectMembership membership = membershipRepository.findByProjectIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new AccessDeniedException("User is not a member of this project"));
