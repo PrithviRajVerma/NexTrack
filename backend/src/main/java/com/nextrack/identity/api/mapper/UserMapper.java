@@ -15,6 +15,8 @@ public final class UserMapper {
                 user.getId(),
                 user.getEmail(),
                 user.getDisplayName(),
+                user.getAvatarUrl(),
+                user.hasPassword(),
                 user.getStatus().name(),
                 user.getCreatedAt()
         );

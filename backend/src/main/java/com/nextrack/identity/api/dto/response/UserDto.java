@@ -7,6 +7,8 @@ public record UserDto(
         UUID id,
         String email,
         String displayName,
+        String avatarUrl,
+        boolean hasPassword,
         String status,
         Instant createdAt
 ) {}
