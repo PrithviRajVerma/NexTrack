@@ -62,11 +62,12 @@ flowchart TD
     subgraph GatewaySecurity ["2. Gateway & Security Pipeline"]
         CORS["Narrow CORS Filter"]
         RL["Bucket4j Token Bucket Rate Limiter\n(Per-IP Auth & Webhook Protection)"]
+        OAUTH2_SEC["OAuth2 Login & Stateless Cookie State Repo\n(GitHub & Google Providers)"]
         SEC["Spring Security Filter Chain\n(JWT Authentication & Workspace/Project RBAC)"]
         HMAC_SEC["WebhookSignatureFilter\n(Max 2MB Bounded Stream + Raw-Byte HMAC-SHA256)"]
         ERR["Global RFC 7807 / 9457 Problem Details Translator"]
         
-        CORS --> RL --> SEC --> HMAC_SEC --> ERR
+        CORS --> RL --> OAUTH2_SEC --> SEC --> HMAC_SEC --> ERR
     end
 
     subgraph BackendMonolith ["3. Spring Boot Modular Monolith"]
@@ -121,9 +122,10 @@ flowchart TD
         SUPERVISOR["Stuck Event Supervisor\n(Lease Expiration Recovery)"]
     end
 
-    subgraph ExternalEcosystem ["6. External VCS & CI/CD Ecosystem"]
+    subgraph ExternalEcosystem ["6. External VCS, CI/CD & Identity Ecosystem"]
         GITHUB["GitHub App & REST API v3\n(RS256 JWT Auth, 50-Min Cached Installation Tokens)"]
         GH_WEBHOOK["GitHub Webhook Dispatcher\n(Push, PR, Workflow Run, Deployment Status)"]
+        IDP_OAUTH["OAuth2 & OIDC Identity Providers\n(GitHub OAuth2 & Google OIDC)"]
     end
 
     ClientTier -->|HTTPS / REST / JSON| GatewaySecurity
@@ -135,6 +137,7 @@ flowchart TD
     OUTBOX_WORKER -.->|Poll & Mark Published| PG
     SUPERVISOR -.->|Reclaim Expired Leases| PG
 
+    IDP_OAUTH -.->|OAuth2 Code Exchange & UserInfo| GatewaySecurity
     GH_WEBHOOK -->|POST /api/v1/integrations/github/webhooks| GatewaySecurity
     PROV_SPI -->|REST Client - Bearer Installation Token| GITHUB
 ```
@@ -248,6 +251,7 @@ erDiagram
     USERS ||--o{ COMMENTS : "authors"
     USERS ||--o{ NOTIFICATIONS : "receives"
     USERS ||--o{ REFRESH_TOKENS : "owns"
+    USERS ||--o{ USER_OAUTH_IDENTITIES : "authenticates via"
 
     WORKSPACES ||--|{ WORKSPACE_MEMBERSHIPS : "contains"
     WORKSPACES ||--o{ PROJECTS : "contains"
@@ -285,8 +289,20 @@ erDiagram
         uuid id PK
         string email UK
         string display_name
-        string password_hash
+        string password_hash "nullable"
+        string avatar_url "nullable"
         string status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    USER_OAUTH_IDENTITIES {
+        uuid id PK
+        uuid user_id FK
+        string provider
+        string provider_user_id
+        string provider_email
+        boolean email_verified
         timestamptz created_at
         timestamptz updated_at
     }
@@ -630,6 +646,30 @@ This section details every significant engineering decision made in NexTrack, co
 
 ---
 
+### ADR-13: Federated Multi-Provider OAuth2 (GitHub & Google) via Stateless Cookie State and Account Linking SPI
+- **Context:** Developers and engineering teams require low-friction onboarding ("Continue with GitHub", "Continue with Google") alongside traditional email/password credentials. The architecture must satisfy four non-negotiable requirements:
+  1. *100% Stateless Backend Invariant:* The OAuth2 handshake must not rely on Spring Security's default in-memory `HttpSession` or stateful Redis clusters, preserving horizontal scaling across container instances.
+  2. *Unified Downstream Security:* The existing RS256 asymmetric JWT access token (15-min TTL in memory) and HttpOnly rotating refresh token (7-day TTL with token family theft detection) must remain the single source of truth across all product endpoints (`/issues`, `/projects`, `/workspaces`).
+  3. *Account Takeover Prevention:* Malicious third parties must not be able to hijack existing accounts by registering unverified emails on external identity providers.
+  4. *Zero Token Leakage in URLs:* Access tokens must never be transmitted via browser redirect query parameters (`?token=...`).
+- **Alternatives Considered:**
+  1. *Spring Security Default `HttpSession` with In-Memory OAuth2 Request Repository:* Uses servlet container sessions to store CSRF `state` and PKCE code verifiers. Rejected because it violates the stateless architecture requirement and requires sticky sessions or distributed session replication.
+  2. *Single-Table Provider Columns (`github_id`, `google_id` on `users` table):* Adds provider columns directly to the core user table. Rejected because it couples core identity to specific third parties, fails to capture provider-specific metadata (such as verified email flags), and requires database schema migrations whenever a new provider (e.g. GitLab or Okta) is supported.
+  3. *Client-Side Direct OAuth2 / Implicit Flow:* React SPA exchanges authorization code directly with GitHub/Google. Rejected because GitHub's OAuth token endpoint does not permit browser CORS without exposing the backend client secret or routing through a custom CORS proxy, violating OAuth2 security standards (RFC 8252).
+  4. *Federated Multi-Provider SPI with Stateless Encrypted Cookie State and Unified Token Hand-off:*
+     - A custom `HttpCookieOAuth2AuthorizationRequestRepository` serializes and AES-GCM encrypts authorization state into a short-lived (3-minute) `HttpOnly; SameSite=Lax; Secure` cookie (`nextrack_oauth2_state`).
+     - A normalized `OAuth2UserInfo` strategy interface decouples provider payload discrepancies (OIDC claims for Google vs. OAuth2 attributes + `/user/emails` fallback for GitHub).
+     - A normalized 1:N `user_oauth_identities` table models provider identities separately from the core `users` aggregate, enabling transparent account linking across multiple providers.
+     - Upon successful authentication, the backend sets the standard HttpOnly `refresh_token` cookie and issues a clean 302 redirect to the SPA's `/auth/callback` route with zero tokens in the URL.
+- **Decision:** **Option 4: Federated Multi-Provider SPI with Stateless Cookie State and Unified Token Hand-off.**
+- **Rationale & Interview Justification:**
+  - *Stateless Elastic Scalability:* Encrypted cookie state eliminates server-side session memory entirely. Any backend instance behind a round-robin load balancer can initiate or complete an OAuth2 handshake without distributed session stores.
+  - *Cryptographic Takeover Immunity:* NexTrack enforces strict email verification checks before auto-linking accounts: Google OIDC guarantees `email_verified = true`, while the GitHub adapter queries `/user/emails` and rejects linking if the matching email is not marked as `verified: true`.
+  - *Zero URL Credential Leakage:* Browser redirect URLs are completely sanitized (`/auth/callback` with zero query tokens). The frontend immediately triggers a silent `POST /api/v1/auth/refresh` using the secure HttpOnly cookie to acquire the in-memory RS256 access JWT, protecting credentials from browser histories, proxy logs, and `Referer` headers.
+  - *Open-Closed Principle (OCP):* Supporting future enterprise identity providers (e.g. GitLab, Okta, Azure AD) requires only a new `OAuth2UserInfo` strategy implementation without schema migrations or downstream API modifications.
+
+---
+
 ## 7. Core Architectural Workflows & Sequence Diagrams
 
 ---
@@ -834,13 +874,91 @@ flowchart TD
 
 ---
 
+### 7.6 Federated Multi-Provider OAuth2 Handshake (GitHub & Google)
+
+Demonstrates the stateless encrypted cookie state repository, provider-specific email normalization, JIT user provisioning, and secure zero-leakage token hand-off:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User Browser
+    participant React as "React SPA (Client)"
+    participant SEC as Security Filter Chain
+    participant CookieRepo as HttpCookieOAuth2Repository
+    participant IdP as "Identity Provider (GitHub or Google)"
+    participant SPI as OAuth2UserInfo SPI
+    participant DB as "PostgreSQL (Identity & Tokens)"
+
+    Note over User, React: 1. User Initiates Social Login
+    User->>React: Clicks "Continue with GitHub" or "Continue with Google"
+    React->>SEC: GET /oauth2/authorization/{provider}
+    activate SEC
+    SEC->>CookieRepo: Serialize and AES-Encrypt AuthorizationRequest (state, PKCE)
+    CookieRepo-->>SEC: Set-Cookie: nextrack_oauth2_state (HttpOnly, Lax, Max-Age=180s)
+    SEC-->>User: 302 Redirect to IdP Consent URL
+    deactivate SEC
+
+    Note over User, IdP: 2. External Provider Authorization
+    User->>IdP: Authenticates and grants scopes (read:user, user:email or openid, profile, email)
+    IdP-->>User: 302 Redirect to /login/oauth2/code/{provider}?code=XYZ&state=ABC
+
+    Note over User, SEC: 3. Stateless Callback Validation & Normalization
+    User->>SEC: GET /login/oauth2/code/{provider}?code=XYZ&state=ABC (Cookie: nextrack_oauth2_state)
+    activate SEC
+    SEC->>CookieRepo: Retrieve and Decrypt AuthorizationRequest
+    SEC->>CookieRepo: Validate state parameter (Anti-CSRF) and Delete Cookie
+    SEC->>IdP: Exchange code XYZ for Provider Tokens and User Profile
+    IdP-->>SEC: Returns Raw User Attributes and OIDC claims
+
+    SEC->>SPI: Normalize Provider Attributes via OAuth2UserInfoFactory
+    alt Provider is GitHub (Check for Private Email)
+        SPI->>IdP: GET /user/emails (Bearer Provider Token)
+        IdP-->>SPI: List of emails with verified and primary flags
+    end
+    SPI-->>SEC: Normalized OAuth2UserInfo (provider, providerUserId, email, emailVerified, avatarUrl)
+
+    Note over SEC, DB: 4. Account Linking and JIT User Provisioning
+    SEC->>DB: SELECT from user_oauth_identities WHERE provider = :p AND provider_user_id = :id
+    alt Identity Already Linked
+        SEC->>DB: Update avatar_url and display_name on users if changed
+    else Identity Not Linked but Verified Email Matches Existing User
+        Note over SEC, DB: Safe Account Linking (Email is verified)
+        SEC->>DB: INSERT INTO user_oauth_identities (user_id, provider, provider_user_id, email, email_verified)
+    else Brand New User
+        Note over SEC, DB: JIT Provisioning
+        SEC->>DB: INSERT INTO users (email, display_name, password_hash=NULL, avatar_url, status='ACTIVE')
+        SEC->>DB: INSERT INTO user_oauth_identities (user_id, provider, provider_user_id, email, email_verified)
+        SEC->>DB: INSERT INTO workspaces (name="User's Team", slug="user-team", owner_user_id)
+        SEC->>DB: INSERT INTO workspace_memberships (role='WORKSPACE_ADMIN')
+    end
+
+    Note over SEC, DB: 5. Unified Token Issuance and Zero-Leakage Hand-off
+    SEC->>DB: INSERT INTO refresh_tokens (token_family, token_hash, expires_at=NOW()+7d)
+    SEC-->>User: 302 Redirect to /auth/callback<br/>Set-Cookie: refresh_token (HttpOnly, SameSite=Strict, Secure)<br/>(ZERO tokens in query string)
+    deactivate SEC
+
+    Note over User, React: 6. Silent In-Memory Token Acquisition
+    User->>React: Loads /auth/callback
+    React->>SEC: POST /api/v1/auth/refresh (Browser attaches HttpOnly refresh_token)
+    activate SEC
+    SEC->>DB: Validate and rotate refresh token in token family
+    SEC-->>React: 200 OK: accessToken=rs256_jwt, user={...}
+    deactivate SEC
+    React-->>User: Transitions seamlessly to Kanban Board
+```
+
+---
+
 ## 8. Core Product Modules & Acceptance Criteria
 
 ### 8.1 Identity & Access Module
-- **Capabilities:** User registration, RS256 JWT access tokens, HttpOnly refresh token rotation with token family theft detection, workspace-level RBAC (`WORKSPACE_ADMIN`, `MEMBER`, `VIEWER`), and project-level RBAC (`PROJECT_ADMIN`, `CONTRIBUTOR`, `VIEWER`).
+- **Capabilities:** User registration, RS256 JWT access tokens, HttpOnly refresh token rotation with token family theft detection, federated multi-provider OAuth2 (GitHub & Google) with stateless encrypted cookie state, verified email account linking, JIT personal workspace provisioning, workspace-level RBAC (`WORKSPACE_ADMIN`, `MEMBER`, `VIEWER`), and project-level RBAC (`PROJECT_ADMIN`, `CONTRIBUTOR`, `VIEWER`).
 - **Acceptance Criteria:**
   - Login failures return generic authentication errors to prevent account enumeration.
   - Passwords hashed using Spring Security `BCryptPasswordEncoder` with strength factor 12.
+  - OAuth2 callback validates anti-CSRF `state` from encrypted HttpOnly cookie; expired or missing state returns `401 Unauthorized`.
+  - Automatic account linking strictly requires `email_verified = true` from external identity providers; unverified emails reject auto-linking to prevent account takeover.
+  - Initial OAuth2 registration automatically provisions a default personal workspace with `WORKSPACE_ADMIN` privileges.
   - Revoking workspace membership cascades to revoke project-level access immediately.
 
 ### 8.2 Workspace & Project Management Module
@@ -934,6 +1052,10 @@ NexTrack APIs strictly follow RESTful conventions, versioned under `/api/v1`, us
 | `POST` | `/api/v1/auth/login` | Authenticate user & issue access JWT + refresh cookie | Public (Rate Limited) |
 | `POST` | `/api/v1/auth/refresh` | Rotate refresh token & issue fresh access JWT | Public (Cookie Auth) |
 | `POST` | `/api/v1/auth/logout` | Revoke active refresh token family | Authenticated |
+| `GET` | `/oauth2/authorization/{provider}` | Initiate OAuth2 authorization (`github` or `google`) | Public |
+| `GET` | `/login/oauth2/code/{provider}` | IdP callback endpoint exchanging authorization code | Public (IdP Callback) |
+| `GET` | `/api/v1/auth/oauth2/identities` | List linked OAuth providers for current user | Authenticated |
+| `DELETE` | `/api/v1/auth/oauth2/identities/{provider}` | Unlink OAuth provider (requires active password or secondary provider) | Authenticated |
 | `GET` | `/api/v1/workspaces` | List accessible workspaces | Authenticated |
 | `POST` | `/api/v1/workspaces` | Create new multi-tenant workspace | Authenticated |
 | `GET` | `/api/v1/workspaces/{id}/members` | List workspace team members | Workspace Member |
@@ -991,6 +1113,10 @@ The following edge cases are explicitly tested and verified in NexTrack:
 | **Authentication** | Invalid password or unknown email | Generic failure response (`401 Unauthorized`); zero account enumeration. |
 | **Authentication** | Disabled user or expired token | Immediate access denial (`401 Unauthorized`). |
 | **Authentication** | Replay of already-rotated refresh token | Token family theft detected; all tokens in family revoked immediately; forced re-authentication. |
+| **Authentication** | OAuth2 callback with mismatched or expired `state` cookie | Rejects with `401 Unauthorized` (`OAUTH2_STATE_MISMATCH`); prevents CSRF login attacks. |
+| **Authentication** | External IdP returns unverified email matching existing account | Rejects automatic linking with `409 Conflict` (`UNVERIFIED_EMAIL_LINK_REJECTED`); prevents account takeover. |
+| **Authentication** | GitHub user has primary email set to private | `GithubOAuth2UserInfo` fetches `/user/emails` with access token to extract primary verified email. |
+| **Authentication** | User attempts to unlink sole authentication method | Rejects with `400 Bad Request` (`CANNOT_UNLINK_SOLE_IDENTITY`); prevents account lockout. |
 | **Authorization** | User modifies URL to access another workspace | `403 Forbidden` or policy-appropriate `404 Not Found`. |
 | **Authorization** | Assign issue to user outside project | Rejected with `400 Bad Request` (`ASSIGNEE_NOT_IN_PROJECT`). |
 | **Input** | Lowercase or malformed project key | Rejected before persistence; must match `^[A-Z][A-Z0-9]{1,9}$`. |
