@@ -12,6 +12,7 @@
 | **0** | **Baseline & Design Freeze** | UI prototype SPA, architecture spec, ADR documentation | Unified UI & design freeze | `COMPLETED` ✅ |
 | **1** | **Backend & Frontend Scaffolding** | Spring Boot 3, Java 21, Vite/React, Docker Compose, Flyway | Runnable skeleton & CI | `COMPLETED` ✅ |
 | **2** | **Identity, Workspace & Project** | Multi-tenant RBAC, RS256 JWT, Refresh Token Rotation | Auth & Project Management | `COMPLETED` ✅ |
+| **2.5**| **Federated Multi-Provider OAuth2** | GitHub & Google OAuth2, AES cookie state, account linking | Social SSO & JIT Auth | `COMPLETED` ✅ |
 | **3** | **Issue Domain & Atomic Counter** | Atomic monotonic numbering (`NT-101`), Issue CRUD | Atomic Issue Allocation | `COMPLETED` ✅ |
 | **4** | **Workflow FSM & Concurrency** | Fixed status FSM, JPA `@Version`, 409 Conflict | Concurrency & Transitions | `READY TO START` ⏳ |
 | **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `NOT STARTED` ⏹️ |
@@ -131,6 +132,44 @@
 #### Definition of Done
 - Users can register, log in, create workspaces, and create projects with validated uppercase keys.
 - Refresh token rotation works with HttpOnly cookies and detects theft attempts.
+
+---
+
+### Phase 2.5 (Extension): Federated Multi-Provider OAuth2 (GitHub & Google) & Account Linking
+**Goal:** Introduce seamless "Continue with GitHub" and "Continue with Google" social authentication while maintaining the 100% stateless backend invariant, preventing account takeovers, and reusing the RS256 JWT access token and token family rotation pipeline.
+- **Status:** `COMPLETED` ✅
+- **Dependencies:** Phase 2 complete.
+
+#### Detailed Task Checklist
+- [x] **Database Migrations:**
+  - [x] Create `V004__create_oauth_identities.sql`:
+    - `ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;`
+    - `ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(512) NULL;`
+    - Create `user_oauth_identities` table (`id UUID PK`, `user_id FK`, `provider VARCHAR(32)`, `provider_user_id VARCHAR(128)`, `provider_email VARCHAR(255)`, `email_verified BOOLEAN DEFAULT true`, `created_at`, `updated_at`, `CONSTRAINT uq_oauth_provider_user UNIQUE (provider, provider_user_id)`).
+    - Composite index on `user_oauth_identities(user_id)` and `user_oauth_identities(provider, provider_user_id)`.
+- [x] **Stateless OAuth2 Infrastructure:**
+  - [x] Add `spring-boot-starter-oauth2-client` dependency.
+  - [x] Configure `HttpCookieOAuth2AuthorizationRequestRepository` to store serialized and AES-GCM encrypted authorization state in a short-lived (3-minute) `HttpOnly; SameSite=Lax; Secure` cookie (`nextrack_oauth2_state`).
+  - [x] Configure GitHub & Google OAuth2 client registrations in `application.yml`.
+- [x] **Provider Normalization SPI (Strategy Pattern):**
+  - [x] Implement `OAuth2UserInfo` interface with `GoogleOAuth2UserInfo` (parsing standard OIDC claims) and `GithubOAuth2UserInfo`.
+  - [x] Implement GitHub private email fallback: If GitHub user email is private, query `GET https://api.github.com/user/emails` using the temporary OAuth token to extract the primary verified email.
+  - [x] Implement `OAuth2UserInfoFactory` resolving provider strategy by `registrationId`.
+- [x] **Account Linking & JIT User Provisioning:**
+  - [x] Implement `OAuth2AuthenticationSuccessHandler`:
+    - If provider identity exists -> update profile metadata and authenticate.
+    - If provider identity does not exist but email matches an existing user:
+      - **Account Takeover Guard:** Assert `email_verified == true`. If verified, link identity row to existing user. If unverified, reject linking with `409 Conflict` (`UNVERIFIED_EMAIL_LINK_REJECTED`).
+    - If brand new user: JIT provision `User` (with `password_hash = NULL`) and auto-create default personal workspace with `WORKSPACE_ADMIN` role.
+    - Issue new `RefreshToken` inside a `token_family`, set `HttpOnly` cookie, and 302-redirect to `/auth/callback` with **zero tokens in URL query string**.
+- [x] **Frontend Hand-off & Verification Tests:**
+  - [x] MockMvc / Integration tests in `OAuth2IntegrationTests.java`:
+    - Successful Google login JIT provisions user and personal workspace.
+    - Successful GitHub login with private email links verified email.
+    - Auto-linking works for verified matching emails.
+    - Unverified external emails are rejected from auto-linking existing accounts.
+    - Expired or tampered OAuth2 state cookie returns clean rejection.
+    - Sole identity unlinking protection prevents account lockout.
 
 ---
 
