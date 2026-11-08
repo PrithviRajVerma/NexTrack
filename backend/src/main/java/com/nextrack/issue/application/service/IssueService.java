@@ -1,19 +1,29 @@
 package com.nextrack.issue.application.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nextrack.audit.api.dto.response.AuditEventResponse;
+import com.nextrack.audit.application.service.AuditService;
 import com.nextrack.issue.api.dto.request.CreateIssueRequest;
+import com.nextrack.issue.api.dto.request.TransitionIssueRequest;
 import com.nextrack.issue.api.dto.request.UpdateIssueRequest;
 import com.nextrack.issue.domain.entity.Issue;
+import com.nextrack.issue.domain.entity.IssueStatus;
 import com.nextrack.issue.domain.repository.IssueRepository;
+import com.nextrack.issue.domain.workflow.IssueStatusTransitionRule;
 import com.nextrack.project.application.service.ProjectService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.modulith.NamedInterface;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @NamedInterface
@@ -25,13 +35,19 @@ public class IssueService {
 
     private final IssueRepository issueRepository;
     private final ProjectService projectService;
+    private final AuditService auditService;
+    private final ObjectMapper objectMapper;
 
     public IssueService(
             IssueRepository issueRepository,
-            ProjectService projectService
+            ProjectService projectService,
+            AuditService auditService,
+            ObjectMapper objectMapper
     ) {
         this.issueRepository = issueRepository;
         this.projectService = projectService;
+        this.auditService = auditService;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -61,7 +77,27 @@ public class IssueService {
                 request.storyPoints()
         );
 
-        return issueRepository.save(issue);
+        Issue saved = issueRepository.save(issue);
+
+        // 5. Atomic Audit Logging for issue creation
+        try {
+            String afterPayload = objectMapper.writeValueAsString(Map.of(
+                    "issueNumber", saved.getIssueNumber(),
+                    "title", saved.getTitle(),
+                    "status", saved.getStatus().name()
+            ));
+            auditService.recordEvent(
+                    requestingUserId,
+                    "ISSUE",
+                    saved.getId(),
+                    "ISSUE_CREATED",
+                    null,
+                    afterPayload,
+                    null
+            );
+        } catch (JsonProcessingException ignored) {}
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -117,6 +153,62 @@ public class IssueService {
         return issueRepository.save(issue);
     }
 
+    @Transactional
+    public Issue transitionIssue(UUID issueId, TransitionIssueRequest request, UUID requestingUserId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() -> new IllegalArgumentException("Issue not found"));
+
+        projectService.assertUserCanContribute(issue.getProjectId(), requestingUserId);
+
+        // Optimistic locking version guard
+        if (request.version() != null && !request.version().equals(issue.getVersion())) {
+            throw new ObjectOptimisticLockingFailureException(Issue.class, issue.getId());
+        }
+
+        IssueStatus fromStatus = issue.getStatus();
+        IssueStatus toStatus = request.targetStatus();
+
+        // Validate state transition through fixed finite state machine (ADR-07)
+        IssueStatusTransitionRule.validateTransition(fromStatus, toStatus);
+
+        if (toStatus == IssueStatus.ARCHIVED) {
+            issue.archive();
+        } else {
+            issue.updateStatus(toStatus);
+        }
+
+        Issue saved = issueRepository.saveAndFlush(issue);
+
+        // Atomic audit logging
+        try {
+            String beforePayload = objectMapper.writeValueAsString(Map.of(
+                    "status", fromStatus.name(),
+                    "version", request.version()
+            ));
+            String afterPayload = objectMapper.writeValueAsString(Map.of(
+                    "status", saved.getStatus().name(),
+                    "version", saved.getVersion()
+            ));
+            auditService.recordEvent(
+                    requestingUserId,
+                    "ISSUE",
+                    saved.getId(),
+                    "STATUS_TRANSITION",
+                    beforePayload,
+                    afterPayload,
+                    null
+            );
+        } catch (JsonProcessingException ignored) {}
+
+        return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public List<AuditEventResponse> getIssueHistory(UUID issueId, UUID requestingUserId) {
+        Issue issue = getIssue(issueId, requestingUserId);
+        return auditService.getAuditHistory("ISSUE", issue.getId());
+    }
+
     @Transactional(readOnly = true)
     public String getProjectKey(UUID projectId) {
         return projectService.getProjectKey(projectId);
@@ -134,3 +226,4 @@ public class IssueService {
         }
     }
 }
+

@@ -1,6 +1,8 @@
 package com.nextrack.issue.api.controller;
 
+import com.nextrack.audit.api.dto.response.AuditEventResponse;
 import com.nextrack.issue.api.dto.request.CreateIssueRequest;
+import com.nextrack.issue.api.dto.request.TransitionIssueRequest;
 import com.nextrack.issue.api.dto.request.UpdateIssueRequest;
 import com.nextrack.issue.api.dto.response.IssueResponse;
 import com.nextrack.issue.api.mapper.IssueMapper;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -80,5 +83,25 @@ public class IssueController {
         Issue issue = issueService.updateIssue(issueId, request, principal.id());
         String projectKey = issueService.getProjectKey(issue.getProjectId());
         return ResponseEntity.ok(IssueMapper.toResponse(issue, projectKey));
+    }
+
+    @PostMapping("/issues/{issueId}/transitions")
+    public ResponseEntity<IssueResponse> transitionIssue(
+            @PathVariable UUID issueId,
+            @Valid @RequestBody TransitionIssueRequest request,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Issue issue = issueService.transitionIssue(issueId, request, principal.id());
+        String projectKey = issueService.getProjectKey(issue.getProjectId());
+        return ResponseEntity.ok(IssueMapper.toResponse(issue, projectKey));
+    }
+
+    @GetMapping("/issues/{issueId}/history")
+    public ResponseEntity<List<AuditEventResponse>> getIssueHistory(
+            @PathVariable UUID issueId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        List<AuditEventResponse> history = issueService.getIssueHistory(issueId, principal.id());
+        return ResponseEntity.ok(history);
     }
 }

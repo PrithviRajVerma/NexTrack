@@ -1,5 +1,7 @@
 package com.nextrack.shared.api;
 
+import com.nextrack.shared.exception.WorkflowTransitionDeniedException;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -23,6 +25,22 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(WorkflowTransitionDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleWorkflowTransitionDenied(
+            WorkflowTransitionDeniedException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("Workflow transition denied at {}: {}", request.getRequestURI(), ex.getMessage());
+        ApiErrorResponse response = ApiErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Workflow Transition Denied",
+                ex.getMessage(),
+                "WORKFLOW_TRANSITION_DENIED",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidationException(
@@ -61,9 +79,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    @ExceptionHandler({ObjectOptimisticLockingFailureException.class, OptimisticLockException.class})
     public ResponseEntity<ApiErrorResponse> handleOptimisticLockFailure(
-            ObjectOptimisticLockingFailureException ex,
+            Exception ex,
             HttpServletRequest request
     ) {
         log.warn("Optimistic lock conflict at {}: {}", request.getRequestURI(), ex.getMessage());
@@ -71,7 +89,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT.value(),
                 "Conflict",
                 "This resource was modified by another user. Reload latest data and retry.",
-                "RESOURCE_VERSION_CONFLICT",
+                "ISSUE_VERSION_CONFLICT",
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
