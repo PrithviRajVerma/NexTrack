@@ -14,8 +14,8 @@
 | **2** | **Identity, Workspace & Project** | Multi-tenant RBAC, RS256 JWT, Refresh Token Rotation | Auth & Project Management | `COMPLETED` ✅ |
 | **2.5**| **Federated Multi-Provider OAuth2** | GitHub & Google OAuth2, AES cookie state, account linking | Social SSO & JIT Auth | `COMPLETED` ✅ |
 | **3** | **Issue Domain & Atomic Counter** | Atomic monotonic numbering (`NT-101`), Issue CRUD | Atomic Issue Allocation | `COMPLETED` ✅ |
-| **4** | **Workflow FSM & Concurrency** | Fixed status FSM, JPA `@Version`, 409 Conflict | Concurrency & Transitions | `READY TO START` ⏳ |
-| **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `NOT STARTED` ⏹️ |
+| **4** | **Workflow FSM & Concurrency** | Fixed status FSM, JPA `@Version`, 409 Conflict | Concurrency & Transitions | `COMPLETED` ✅ |
+| **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `READY TO START` ⏳ |
 | **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `NOT STARTED` ⏹️ |
 | **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `NOT STARTED` ⏹️ |
 | **8** | **GitHub App & Webhook Inbox** | Raw-byte HMAC filter, 2-phase claim, 5-min lease | Resilient Webhook Queue | `NOT STARTED` ⏹️ |
@@ -26,8 +26,8 @@
 ---
 
 ## 🎯 Current Sprint & Active Focus
-- **Current Phase:** `Phase 4 — Issue Workflow State Machine & Concurrency Control`
-- **Immediate Task:** Enforce the immutable 5-state finite state machine (`BACKLOG` -> `TO_DO` -> `IN_PROGRESS` -> `IN_REVIEW` -> `DONE`), `POST /api/v1/issues/{id}/transitions` with expected version, and atomic audit logging table `audit_events`.
+- **Current Phase:** `Phase 5 — Interactive Kanban Board UI`
+- **Immediate Task:** Implement read-optimized board view projections (`v_board_cards`), `GET /api/v1/projects/{projectId}/board`, and React 18 Kanban board with drag-and-drop optimistic UI updates and version rollback.
 - **Blockers:** None.
 
 ---
@@ -212,28 +212,31 @@
 
 ### Phase 4: Issue Workflow State Machine & Concurrency Control
 **Goal:** Enforce the immutable 5-state finite state machine (`BACKLOG` -> `TO_DO` -> `IN_PROGRESS` -> `IN_REVIEW` -> `DONE`), JPA `@Version` optimistic locking, and atomic audit logs.
-- **Status:** `READY TO START` ⏳
+- **Status:** `COMPLETED` ✅
 - **Dependencies:** Phase 3 complete.
 
 #### Detailed Task Checklist
-- [ ] **Database Migrations:**
-  - [ ] Create `V004__create_workflow_and_audit.sql`:
+- [x] **Database Migrations:**
+  - [x] Create `V005__create_workflow_and_audit.sql`:
     - `comments` table (`id UUID PK`, `issue_id FK`, `author_id FK`, `body TEXT`, `created_at`, `updated_at`, `deleted_at`).
     - `audit_events` table (`id UUID PK`, `actor_id FK`, `entity_type`, `entity_id UUID`, `action`, `before_payload JSONB`, `after_payload JSONB`, `trace_id`, `created_at`).
-- [ ] **Fixed Workflow State Machine:**
-  - [ ] Create enum `IssueStatus`: `BACKLOG`, `TO_DO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`, `ARCHIVED`.
-  - [ ] Implement `IssueStatusTransitionRule`:
-    - Define permitted state transitions.
+- [x] **Fixed Workflow State Machine:**
+  - [x] Create enum `IssueStatus`: `BACKLOG`, `TO_DO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`, `ARCHIVED`.
+  - [x] Implement `IssueStatusTransitionRule`:
+    - Define permitted state transitions (`BACKLOG` ↔ `TO_DO` ↔ `IN_PROGRESS` ↔ `IN_REVIEW` ↔ `DONE`, defect reopen `DONE` ➔ `IN_PROGRESS`, archiving `BACKLOG` / `DONE` ➔ `ARCHIVED`).
     - Reject disallowed transitions with `400 Bad Request` (`WORKFLOW_TRANSITION_DENIED`).
-  - [ ] Create `POST /api/v1/issues/{id}/transitions` requiring `targetStatus` and expected `version`.
-- [ ] **Optimistic Locking Concurrency:**
-  - [ ] Add `@Version private Integer version;` to `Issue` entity.
-  - [ ] Catch `OptimisticLockException` in `GlobalExceptionHandler` and map to `409 Conflict` (RFC 7807 with error code `ISSUE_VERSION_CONFLICT`).
-- [ ] **Atomic Audit Logging:**
-  - [ ] Within the status transition transaction, insert an audit row capturing `from_status`, `to_status`, `actor_id`, and timestamp.
-- [ ] **Automated Tests:**
-  - [ ] Unit test: Verify all valid transitions pass; verify invalid transitions (e.g., `BACKLOG` -> `DONE`) are rejected.
-  - [ ] Testcontainers concurrency test: Two concurrent requests submit version 1. Assert exactly one succeeds with 200 OK and one receives 409 Conflict.
+  - [x] Create `POST /api/v1/issues/{id}/transitions` requiring `targetStatus` and expected `version`.
+- [x] **Optimistic Locking Concurrency:**
+  - [x] Add `@Version private long version;` to `Issue` entity.
+  - [x] Catch `OptimisticLockException` and `ObjectOptimisticLockingFailureException` in `GlobalExceptionHandler` and map to `409 Conflict` (RFC 7807 with error code `ISSUE_VERSION_CONFLICT`).
+- [x] **Atomic Audit Logging & Comments:**
+  - [x] Within the status transition transaction, insert an audit row capturing `from_status`, `to_status`, `actor_id`, and timestamp.
+  - [x] Implement `CommentService` & `CommentController` (`POST`, `GET`, `DELETE` with soft delete via `deleted_at`).
+  - [x] Expose `GET /api/v1/issues/{id}/history` returning immutable audit trail.
+- [x] **Automated Tests:**
+  - [x] Unit test: Verify all valid transitions pass; verify invalid transitions (e.g., `BACKLOG` -> `DONE`) are rejected (`IssueStatusTransitionRuleTests`).
+  - [x] Testcontainers concurrency test: Two concurrent requests submit version 0. Assert exactly one succeeds with 200 OK and one receives 409 Conflict with `ISSUE_VERSION_CONFLICT`.
+  - [x] Testcontainers integration test: Full lifecycle walkthrough (`BACKLOG` -> `TO_DO` -> `IN_PROGRESS` -> `IN_REVIEW` -> `DONE` -> `IN_PROGRESS` reopen -> `IN_REVIEW` -> `DONE` -> `ARCHIVED`) and comments lifecycle (`WorkflowAndTransitionIntegrationTests`).
 
 #### Definition of Done
 - Invalid status transitions are rejected at domain level.
