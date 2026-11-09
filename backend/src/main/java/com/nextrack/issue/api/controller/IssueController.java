@@ -4,6 +4,7 @@ import com.nextrack.audit.api.dto.response.AuditEventResponse;
 import com.nextrack.issue.api.dto.request.CreateIssueRequest;
 import com.nextrack.issue.api.dto.request.TransitionIssueRequest;
 import com.nextrack.issue.api.dto.request.UpdateIssueRequest;
+import com.nextrack.issue.api.dto.response.BoardViewResponse;
 import com.nextrack.issue.api.dto.response.IssueResponse;
 import com.nextrack.issue.api.mapper.IssueMapper;
 import com.nextrack.issue.application.service.IssueService;
@@ -51,6 +52,15 @@ public class IssueController {
         String projectKey = issueService.getProjectKey(projectId);
         Page<IssueResponse> responsePage = page.map(issue -> IssueMapper.toResponse(issue, projectKey));
         return ResponseEntity.ok(responsePage);
+    }
+
+    @GetMapping("/projects/{projectId}/board")
+    public ResponseEntity<BoardViewResponse> getProjectBoard(
+            @PathVariable UUID projectId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        BoardViewResponse board = issueService.getBoardView(projectId, principal.id());
+        return ResponseEntity.ok(board);
     }
 
     @GetMapping("/issues/{issueId}")

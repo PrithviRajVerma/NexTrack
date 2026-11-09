@@ -15,8 +15,8 @@
 | **2.5**| **Federated Multi-Provider OAuth2** | GitHub & Google OAuth2, AES cookie state, account linking | Social SSO & JIT Auth | `COMPLETED` ✅ |
 | **3** | **Issue Domain & Atomic Counter** | Atomic monotonic numbering (`NT-101`), Issue CRUD | Atomic Issue Allocation | `COMPLETED` ✅ |
 | **4** | **Workflow FSM & Concurrency** | Fixed status FSM, JPA `@Version`, 409 Conflict | Concurrency & Transitions | `COMPLETED` ✅ |
-| **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `READY TO START` ⏳ |
-| **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `NOT STARTED` ⏹️ |
+| **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `COMPLETED` ✅ |
+| **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `READY TO START` ⏳ |
 | **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `NOT STARTED` ⏹️ |
 | **8** | **GitHub App & Webhook Inbox** | Raw-byte HMAC filter, 2-phase claim, 5-min lease | Resilient Webhook Queue | `NOT STARTED` ⏹️ |
 | **9** | **Issue-to-Code Traceability** | Regex key extraction, M:N links, manual linking | Branches, Commits, PRs | `NOT STARTED` ⏹️ |
@@ -26,8 +26,8 @@
 ---
 
 ## 🎯 Current Sprint & Active Focus
-- **Current Phase:** `Phase 5 — Interactive Kanban Board UI`
-- **Immediate Task:** Implement read-optimized board view projections (`v_board_cards`), `GET /api/v1/projects/{projectId}/board`, and React 18 Kanban board with drag-and-drop optimistic UI updates and version rollback.
+- **Current Phase:** `Phase 6 — In-App Notifications & Transactional Outbox Pattern`
+- **Immediate Task:** Implement PostgreSQL-backed outbox pattern (`outbox_events` table), background worker with `SELECT FOR UPDATE SKIP LOCKED`, and deduplicated in-app notification center.
 - **Blockers:** None.
 
 ---
@@ -246,26 +246,30 @@
 
 ### Phase 5: Interactive Kanban Board UI
 **Goal:** Build the React 18 Kanban board with drag-and-drop transitions, TanStack Query state caching, read-optimized board card views, and optimistic UI updates with rollback.
-- **Status:** `NOT STARTED` ⏹️
+- **Status:** `COMPLETED` ✅
 - **Dependencies:** Phase 4 complete.
 
 #### Detailed Task Checklist
-- [ ] **Read-Optimized Board Projections:**
-  - [ ] Create Flyway migration `V005__create_board_view.sql` creating view `v_board_cards`.
-  - [ ] Implement `BoardCardDto` projection query in `IssueRepository` returning minimal card data with lateral comment and dev counts.
-  - [ ] Expose `GET /api/v1/projects/{projectId}/board` returning cards grouped by column status.
-- [ ] **React Kanban Board Component (`frontend/src/features/board/`):**
-  - [ ] Implement 5-column layout: `BACKLOG`, `TO_DO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`.
-  - [ ] Integrate HTML5 Drag & Drop or `@hello-pangea/dnd`.
-  - [ ] Add Board Toolbar: search filter, assignee filter, and priority filter.
-- [ ] **Optimistic UI with Conflict Rollback:**
-  - [ ] Configure TanStack Query `useMutation` on card drag:
+- [x] **Read-Optimized Board Projections:**
+  - [x] Create Flyway migration `V006__create_board_view.sql` creating view `v_board_cards`.
+  - [x] Implement `BoardCardView` entity and `BoardCardResponse` projection returning minimal card data with lateral comment and dev counts.
+  - [x] Expose `GET /api/v1/projects/{projectId}/board` returning cards grouped by column status.
+- [x] **React Kanban Board Component (`frontend/src/features/board/`):**
+  - [x] Implement 5-column layout: `BACKLOG`, `TO_DO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`.
+  - [x] Integrate HTML5 Drag & Drop (`draggable`, `onDragStart`, `onDragOver`, `onDrop`).
+  - [x] Add Board Toolbar: search filter, assignee filter, priority filter, type filter, linked PRs toggle, and conflict simulation mode.
+  - [x] Add Create Issue Modal and Issue Detail Modal with status transition controls and comments.
+- [x] **Optimistic UI with Conflict Rollback:**
+  - [x] Configure TanStack Query `useMutation` on card drag:
     - `onMutate`: Snapshot current query cache; optimistically update card to target status.
-    - `onError`: Revert card back to snapshotted column; trigger toast: *"Transition failed: Issue modified by another user"*.
+    - `onError`: Revert card back to snapshotted column; trigger toast: *"Optimistic Concurrency Conflict (409): Issue was modified by another user concurrently."*
     - `onSettled`: Invalidate and refetch board query.
-- [ ] **Theme & Design Consistency:**
-  - [ ] Implement dual-theme (Dark / Light) with smooth CSS variable transitions (`Cmd+T` shortcut).
-  - [ ] Implement keyboard navigation (1-7 view switcher, `C` create issue modal, `[` toggle sidebar).
+- [x] **Theme & Design Consistency:**
+  - [x] Implement dual-theme (Dark / Light) with smooth CSS transitions (`Cmd+T` shortcut).
+  - [x] Implement keyboard navigation (`1`/`2` view switcher, `C` create issue modal, `Escape` close modal).
+- [x] **Automated Integration Tests:**
+  - [x] `BoardViewIntegrationTests.java`: Test read-optimized board grouped columns, comment count subqueries, and unauthorized access rejection.
+  - [x] `ModulithArchitectureTests.java`: Verify zero package cycle or architectural leakage.
 
 #### Definition of Done
 - Dragging cards moves columns instantaneously.

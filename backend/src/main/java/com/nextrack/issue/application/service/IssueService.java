@@ -7,8 +7,13 @@ import com.nextrack.audit.application.service.AuditService;
 import com.nextrack.issue.api.dto.request.CreateIssueRequest;
 import com.nextrack.issue.api.dto.request.TransitionIssueRequest;
 import com.nextrack.issue.api.dto.request.UpdateIssueRequest;
+import com.nextrack.issue.api.dto.response.BoardCardResponse;
+import com.nextrack.issue.api.dto.response.BoardViewResponse;
+import com.nextrack.issue.api.mapper.IssueMapper;
+import com.nextrack.issue.domain.entity.BoardCardView;
 import com.nextrack.issue.domain.entity.Issue;
 import com.nextrack.issue.domain.entity.IssueStatus;
+import com.nextrack.issue.domain.repository.BoardCardRepository;
 import com.nextrack.issue.domain.repository.IssueRepository;
 import com.nextrack.issue.domain.workflow.IssueStatusTransitionRule;
 import com.nextrack.project.application.service.ProjectService;
@@ -22,6 +27,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,17 +41,20 @@ public class IssueService {
     private static final int DEFAULT_PAGE_SIZE = 25;
 
     private final IssueRepository issueRepository;
+    private final BoardCardRepository boardCardRepository;
     private final ProjectService projectService;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
 
     public IssueService(
             IssueRepository issueRepository,
+            BoardCardRepository boardCardRepository,
             ProjectService projectService,
             AuditService auditService,
             ObjectMapper objectMapper
     ) {
         this.issueRepository = issueRepository;
+        this.boardCardRepository = boardCardRepository;
         this.projectService = projectService;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
@@ -201,6 +211,34 @@ public class IssueService {
         } catch (JsonProcessingException ignored) {}
 
         return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public BoardViewResponse getBoardView(UUID projectId, UUID requestingUserId) {
+        assertUserCanAccessProject(projectId, requestingUserId);
+        String projectKey = projectService.getProjectKey(projectId);
+
+        List<BoardCardView> cards = boardCardRepository.findByProjectIdOrderByUpdatedAtDesc(projectId);
+
+        Map<IssueStatus, List<BoardCardResponse>> columns = new LinkedHashMap<>();
+        for (IssueStatus status : IssueStatus.values()) {
+            if (status != IssueStatus.ARCHIVED) {
+                columns.put(status, new ArrayList<>());
+            }
+        }
+
+        for (BoardCardView card : cards) {
+            if (columns.containsKey(card.getStatus())) {
+                columns.get(card.getStatus()).add(IssueMapper.toBoardCardResponse(card));
+            }
+        }
+
+        return new BoardViewResponse(
+                projectId,
+                projectKey,
+                columns,
+                cards.size()
+        );
     }
 
     @Transactional(readOnly = true)
