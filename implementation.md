@@ -244,8 +244,8 @@
 
 ---
 
-### Phase 5: Interactive Kanban Board UI
-**Goal:** Build the React 18 Kanban board with drag-and-drop transitions, TanStack Query state caching, read-optimized board card views, and optimistic UI updates with rollback.
+### Phase 5: Interactive Kanban Board UI & Modular Frontend Architecture
+**Goal:** Build the React 18 Kanban board with drag-and-drop transitions, TanStack Query state caching, read-optimized board card views, optimistic UI updates with rollback, and refactor the frontend into an enterprise feature-driven modular structure ("Bulletproof React").
 - **Status:** `COMPLETED` ✅
 - **Dependencies:** Phase 4 complete.
 
@@ -254,7 +254,29 @@
   - [x] Create Flyway migration `V006__create_board_view.sql` creating view `v_board_cards`.
   - [x] Implement `BoardCardView` entity and `BoardCardResponse` projection returning minimal card data with lateral comment and dev counts.
   - [x] Expose `GET /api/v1/projects/{projectId}/board` returning cards grouped by column status.
-- [x] **React Kanban Board Component (`frontend/src/features/board/`):**
+- [x] **Enterprise Frontend Modular Architecture Refactor ("Bulletproof React"):**
+  - [x] Application Shell (`src/app/`):
+    - [x] Extract `AppProviders.tsx` (composite `ErrorBoundary`, `QueryProvider`, and `ThemeProvider`).
+    - [x] Configure declarative routing in `router.tsx` (`/`, `/dashboard`, `/auth/login`).
+    - [x] Create layout shells: `MainLayout.tsx` (Header + Sidebar + Outlet) and `AuthLayout.tsx`.
+    - [x] Mount application through `src/app/App.tsx` and `src/app/main.tsx`.
+  - [x] Atomic UI Primitives (`src/components/ui/`):
+    - [x] Implement reusable headless/Tailwind primitives: `Button`, `Input`, `Modal`, `Loader` using `cn()` (`clsx` + `twMerge`).
+  - [x] Shared Common Fixtures (`src/components/common/`):
+    - [x] Implement persistent application components: `Header`, `Sidebar`, `ErrorBoundary`.
+  - [x] Self-Contained Feature Slices (`src/features/`):
+    - [x] `features/board/`: Components (`BoardCard`, `BoardColumn`, `BoardToolbar`, `ConflictToast`, `CreateIssueModal`, `IssueDetailModal`), custom hooks (`useBoard`, `useIssueTransitions`), API client (`boardApi`), types (`board.types.ts`), and public barrel export (`index.ts`).
+    - [x] `features/auth/`: Components (`LoginForm`), API client (`authApi`), types (`auth.types.ts`), and public barrel export (`index.ts`).
+    - [x] `features/dashboard/`: Components (`ArchitectureDashboard`), and public barrel export (`index.ts`).
+  - [x] Networking & Interceptors (`src/lib/` & `src/services/`):
+    - [x] Configure Axios client (`lib/axios.ts`) with request interceptor for JWT Bearer injection.
+    - [x] Configure response interceptor for automatic 401 refresh token rotation and RFC 7807 Problem Details translation.
+  - [x] Client State & Utilities:
+    - [x] Reactive client authentication store (`src/store/authStore.ts`).
+    - [x] Formatting helpers (`formatDate.ts`, `formatCurrency.ts`) and hooks (`useDebounce.ts`, `useLocalStorage.ts`).
+  - [x] Tooling & Linting Configs:
+    - [x] Add `.env`, `.env.example`, `eslint.config.js`, `prettier.config.js`, and `src/test/setup.ts`.
+- [x] **React Kanban Board Feature Component (`src/features/board/`):**
   - [x] Implement 5-column layout: `BACKLOG`, `TO_DO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`.
   - [x] Integrate HTML5 Drag & Drop (`draggable`, `onDragStart`, `onDragOver`, `onDrop`).
   - [x] Add Board Toolbar: search filter, assignee filter, priority filter, type filter, linked PRs toggle, and conflict simulation mode.
@@ -270,21 +292,23 @@
 - [x] **Automated Integration Tests:**
   - [x] `BoardViewIntegrationTests.java`: Test read-optimized board grouped columns, comment count subqueries, and unauthorized access rejection.
   - [x] `ModulithArchitectureTests.java`: Verify zero package cycle or architectural leakage.
+  - [x] `npm run build`: Production build and TypeScript validation pass cleanly.
 
 #### Definition of Done
 - Dragging cards moves columns instantaneously.
 - Simulating a server 409 or 400 error cleanly reverts the card to its original column with a descriptive toast.
+- Frontend directory structure conforms 100% to feature-driven modular architecture.
 
 ---
 
 ### Phase 6: In-App Notifications & Transactional Outbox Pattern
 **Goal:** Implement reliable, at-least-once in-app notifications using the Transactional Outbox pattern without external message brokers.
-- **Status:** `NOT STARTED` ⏹️
+- **Status:** `READY TO START` ⏳
 - **Dependencies:** Phase 5 complete.
 
 #### Detailed Task Checklist
 - [ ] **Database Migrations:**
-  - [ ] Create `V006__create_outbox_and_notifications.sql`:
+  - [ ] Create `V007__create_outbox_and_notifications.sql`:
     - `notifications` table (`id UUID PK`, `recipient_id FK`, `event_type`, `payload JSONB`, `dedup_key UK`, `read_at TIMESTAMPTZ NULL`, `created_at`).
     - `outbox_events` table (`id UUID PK`, `event_type`, `payload JSONB`, `status VARCHAR(16)`, `retry_count INT DEFAULT 0`, `next_retry_at TIMESTAMPTZ NULL`, `created_at`, `published_at TIMESTAMPTZ NULL`).
     - Partial index on `outbox_events (status, next_retry_at) WHERE status = 'PENDING'`.
@@ -311,7 +335,7 @@
 
 #### Detailed Task Checklist
 - [ ] **Database Migrations:**
-  - [ ] Create `V007__create_attachments.sql`:
+  - [ ] Create `V008__create_attachments.sql`:
     - `attachments` table (`id UUID PK`, `issue_id FK`, `uploader_id FK`, `original_filename`, `storage_key UK`, `content_type`, `size_bytes BIGINT`, `checksum`, `created_at`, `deleted_at`).
 - [ ] **Secure Attachment Pipeline:**
   - [ ] Implement `StorageAdapter` interface with `LocalStorageAdapter` (storing files outside web root).
@@ -336,7 +360,7 @@
 
 #### Detailed Task Checklist
 - [ ] **Database Migrations:**
-  - [ ] Create `V008__create_github_integrations_and_inbox.sql`:
+  - [ ] Create `V009__create_github_integrations_and_inbox.sql`:
     - `integration_installations` table (`id UUID PK`, `workspace_id FK`, `provider VARCHAR(32)`, `installation_id BIGINT`, `account_name`, `encrypted_webhook_secret`, `created_at`, `CONSTRAINT uq_integration_installation UNIQUE (provider, installation_id)`).
     - `connected_repositories` table (`id UUID PK`, `installation_id FK`, `provider`, `external_repo_id`, `name`, `full_name`, `html_url`, `default_branch`, `is_active BOOLEAN`, `last_synced_at`, `CONSTRAINT uq_connected_repo UNIQUE (installation_id, external_repo_id)`).
     - `project_connected_repositories` join table (`project_id FK`, `repository_id FK`, `connected_by FK`, `connected_at`, `PRIMARY KEY (project_id, repository_id)`).
@@ -382,7 +406,7 @@
 
 #### Detailed Task Checklist
 - [ ] **Database Migrations:**
-  - [ ] Create `V009__create_development_artifacts.sql`:
+  - [ ] Create `V010__create_development_artifacts.sql`:
     - `development_branches` (`id UUID PK`, `repository_id FK`, `name`, `last_commit_sha`, `CONSTRAINT uq_branch_repo_name UNIQUE (repository_id, name)`).
     - `development_commits` (`id UUID PK`, `repository_id FK`, `commit_sha`, `message`, `author_name`, `author_email`, `commit_url`, `committed_at`, `CONSTRAINT uq_commit_repo_sha UNIQUE (repository_id, commit_sha)`).
     - `pull_requests` (`id UUID PK`, `repository_id FK`, `provider_pr_id`, `pr_number`, `title`, `description`, `source_branch`, `target_branch`, `pr_url`, `status`, `review_status`, `is_draft`, `merged_at`, `CONSTRAINT uq_pr_repo_num UNIQUE (repository_id, pr_number)`).
@@ -415,7 +439,7 @@
 
 #### Detailed Task Checklist
 - [ ] **Database Migrations:**
-  - [ ] Create `V010__create_builds_and_deployments.sql`:
+  - [ ] Create `V011__create_builds_and_deployments.sql`:
     - `builds` table (`id UUID PK`, `repository_id FK`, `external_build_id`, `build_number`, `pipeline_name`, `commit_sha`, `branch_name`, `status`, `build_url`, `started_at`, `completed_at`, `duration_seconds`, `CONSTRAINT uq_build_repo_ext UNIQUE (repository_id, external_build_id)`).
     - `deployments` table (`id UUID PK`, `repository_id FK`, `external_deployment_id`, `environment`, `commit_sha`, `status`, `deployment_url`, `deployed_by`, `started_at`, `completed_at`, `CONSTRAINT uq_deploy_repo_ext UNIQUE (repository_id, external_deployment_id)`).
     - `issue_builds` join table (`issue_id FK`, `build_id FK`, `link_type`, `linked_at`, `PRIMARY KEY (issue_id, build_id)`).
@@ -459,7 +483,7 @@
     - HikariCP active vs idle connection gauge.
 - [ ] **Distributed Scheduler Coordination:**
   - [ ] Add ShedLock (`net.javacrumbs.shedlock:shedlock-spring`).
-  - [ ] Create Flyway migration `V011__create_shedlock.sql` (`shedlock` table).
+  - [ ] Create Flyway migration `V012__create_shedlock.sql` (`shedlock` table).
   - [ ] Annotate `WebhookInboxWorker.poll()` and `StuckEventSupervisor.scan()` with `@SchedulerLock`.
 - [ ] **Repeatable k6 Benchmark Suite (`scripts/load-tests/`):**
   - [ ] `webhook-ingestion.js`: 100 concurrent virtual users posting signed webhooks; assert < 30ms p95 latency.

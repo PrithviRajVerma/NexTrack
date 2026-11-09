@@ -219,17 +219,43 @@ nextrack/
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.ts
+│   ├── tsconfig.json
+│   ├── tailwind.config.js
+│   ├── eslint.config.js
+│   ├── prettier.config.js
+│   ├── .env.example
+│   ├── public/
+│   │   └── images/
 │   └── src/
-│       ├── app/                          # Routing, query client, theme providers
-│       ├── components/                   # Shared UI primitives (buttons, modals, toasts)
-│       ├── features/                     # Board, issues, development, auth, settings
-│       └── lib/                          # API client, error mapping, formatters
+│       ├── app/                          # Application shell, router tree, layout fixtures, providers
+│       │   ├── App.tsx                   # Composite root rendering AppProviders and RouterProvider
+│       │   ├── main.tsx                  # DOM bootstrap mounting root
+│       │   ├── router.tsx                # react-router-dom route declarations
+│       │   ├── providers/                # QueryProvider, ThemeProvider, AppProviders
+│       │   └── layouts/                  # MainLayout (Header + Sidebar + Outlet), AuthLayout
+│       ├── assets/                       # Static fonts, SVGs, and images
+│       ├── components/                   # Shared reusable design system & common components
+│       │   ├── ui/                       # Headless primitives: Button, Input, Modal, Loader (using cn())
+│       │   └── common/                   # Application fixtures: Header, Sidebar, ErrorBoundary
+│       ├── features/                     # Autonomous domain modules ("Bulletproof React" pattern)
+│       │   ├── board/                    # Kanban Board (components, hooks, services, types, index.ts)
+│       │   ├── auth/                     # Authentication & SSO (components, services, types, index.ts)
+│       │   └── dashboard/                # Architecture telemetry (components, index.ts)
+│       ├── hooks/                        # Cross-cutting custom hooks (useDebounce, useLocalStorage)
+│       ├── lib/                          # Third-party wrappers (axios, queryClient, cn utils)
+│       ├── services/api/                 # Centralized HTTP endpoints & Axios request/response interceptors
+│       ├── store/                        # Global client state (authStore)
+│       ├── types/                        # Global and RFC 7807 ProblemDetails API types
+│       ├── constants/                    # Application constants, storage keys, column definitions
+│       ├── utils/                        # Pure helper functions (formatDate, formatCurrency)
+│       ├── styles/                       # Global stylesheet (global.css with custom scrollbars)
+│       └── test/                         # Frontend test runners setup (setup.ts)
 ├── docker-compose.yml                    # PostgreSQL 16, Prometheus, Grafana
 ├── Makefile                              # Developer commands (dev, test, bench, clean)
 └── docs/                                 # ADRs, load test results, screenshots
 ```
 
-### Module Layering Structure
+### Module Layering Structure (Backend)
 Every domain module (`identity`, `workspace`, `project`, `issue`, etc.) enforces strict granular separation of concerns:
 - **`api/controller/`:** Pure HTTP handling with `@RestController`, path mapping, parameter validation, and status codes.
 - **`api/dto/request/`:** Inbound command models as immutable Java `record`s with Jakarta validation constraints (`@NotBlank`, `@Size`, etc.).
@@ -238,6 +264,14 @@ Every domain module (`identity`, `workspace`, `project`, `issue`, etc.) enforces
 - **`application/service/`:** Orchestration services owning `@Transactional` boundaries, domain logic invocation, and cross-module checks.
 - **`domain/entity/`:** Pure domain models, JPA `@Entity` definitions, state invariants, and domain Enums.
 - **`domain/repository/`:** Spring Data JPA repository interfaces executing JPQL and atomic native SQL operations.
+
+### Frontend Architectural Layering ("Bulletproof React")
+The React frontend adopts a feature-driven, modular architecture designed for high cohesion and low coupling:
+- **`src/app/`:** Owns the application lifecycle, top-level composition (`AppProviders.tsx`), declarative route configuration (`router.tsx`), and layout scaffolding (`MainLayout.tsx`, `AuthLayout.tsx`).
+- **`src/components/ui/`:** Implements reusable, atomic UI primitives (`Button`, `Input`, `Modal`, `Loader`) styled with Tailwind CSS and composable class merging (`cn()`).
+- **`src/components/common/`:** Global application components that persist across views (`Header`, `Sidebar`, `ErrorBoundary`).
+- **`src/features/<feature>/`:** Self-contained domain modules containing their own private UI components, custom hooks, API clients, and types. Each feature exposes a public contract exclusively via `index.ts`.
+- **`src/services/api/` & `src/lib/`:** Houses the centralized Axios instance with automated Bearer JWT token injection, silent 401 refresh token rotation, and RFC 7807 error translation.
 
 ---
 
@@ -667,6 +701,21 @@ This section details every significant engineering decision made in NexTrack, co
   - *Cryptographic Takeover Immunity:* NexTrack enforces strict email verification checks before auto-linking accounts: Google OIDC guarantees `email_verified = true`, while the GitHub adapter queries `/user/emails` and rejects linking if the matching email is not marked as `verified: true`.
   - *Zero URL Credential Leakage:* Browser redirect URLs are completely sanitized (`/auth/callback` with zero query tokens). The frontend immediately triggers a silent `POST /api/v1/auth/refresh` using the secure HttpOnly cookie to acquire the in-memory RS256 access JWT, protecting credentials from browser histories, proxy logs, and `Referer` headers.
   - *Open-Closed Principle (OCP):* Supporting future enterprise identity providers (e.g. GitLab, Okta, Azure AD) requires only a new `OAuth2UserInfo` strategy implementation without schema migrations or downstream API modifications.
+
+---
+
+### ADR-14: Feature-Driven Modular Architecture ("Bulletproof React") with Centralized HTTP Interceptors and Design Primitives
+- **Context:** As NexTrack scales across 11 technical phases (from core FSM issues and interactive Kanban boards to transactional outbox notifications, magic-byte attachment streaming, GitHub App webhook management, and CI/CD deployment telemetry), an unconstrained frontend architecture quickly devolves into tightly coupled cross-imports, redundant component declarations, scattered API calls, and inconsistent error handling.
+- **Alternatives Considered:**
+  1. *Flat Layered Architecture (`components/`, `pages/`, `services/`, `hooks/` at root):* All components and services grouped by technical type. Rejected because domain logic is scattered across the repository, making it impossible to encapsulate features, enforce domain boundaries, or delete/refactor features cleanly.
+  2. *Micro-Frontends:* Slicing each feature into independently deployed SPA containers (e.g. Module Federation). Rejected as premature distributed complexity that complicates developer experience, local dev builds, state sharing, and performance for a modular monolith.
+  3. *Feature-Driven Modular Architecture ("Bulletproof React"):* Slicing application by domain features (`features/board/`, `features/auth/`, `features/dashboard/`), where each feature is an autonomous package with internal `components/`, `hooks/`, `services/`, `types/`, and a public barrel export (`index.ts`). Paired with a centralized application shell (`app/`), design system primitives (`components/ui/`), and an enterprise HTTP client with JWT injection and silent 401 refresh token rotation.
+- **Decision:** **Option 3: Feature-Driven Modular Architecture ("Bulletproof React") with Centralized HTTP Interceptors and Design Primitives.**
+- **Rationale & Technical Invariants:**
+  - *Encapsulation & High Cohesion:* Features only expose public entry points via `index.ts`. Private internal hooks or subcomponents cannot be imported arbitrarily by sibling features.
+  - *Atomic Design System (`components/ui/`):* Primitives (`Button`, `Input`, `Modal`, `Loader`) standardize Tailwind design tokens across the application using `cn()` (`clsx` + `tailwind-merge`), preventing style divergence.
+  - *Enterprise Axios Interceptors:* Centralizes HTTP communication in `src/lib/axios.ts` and `src/services/api/interceptors.ts`. Requests automatically attach `Authorization: Bearer <token>`, and 401 responses trigger silent refresh token rotation (`POST /api/v1/auth/refresh`) using the secure HttpOnly cookie before retrying queued requests.
+  - *Client Shell & Routing:* Separates the router tree (`router.tsx`) and layout fixtures (`MainLayout.tsx`, `AuthLayout.tsx`) from feature presentation, making deep linking (`/board`, `/dashboard`, `/auth/login`) clean and composable.
 
 ---
 
