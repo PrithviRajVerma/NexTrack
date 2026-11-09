@@ -1,5 +1,5 @@
 import React from 'react';
-import { ToastMessage } from '../../types/board';
+import { ToastMessage } from '@/types/global';
 import { AlertTriangle, CheckCircle2, Info, XCircle, X } from 'lucide-react';
 
 interface ToastContainerProps {
@@ -7,7 +7,7 @@ interface ToastContainerProps {
   onDismiss: (id: string) => void;
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
+export const ConflictToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
   if (toasts.length === 0) return null;
 
   const renderIcon = (type: ToastMessage['type']) => {

@@ -49,18 +49,6 @@ export interface TransitionPayload {
   version: number;
 }
 
-export interface AuditEvent {
-  id: string;
-  actorId?: string | null;
-  entityType: string;
-  entityId: string;
-  action: string;
-  beforePayload?: string | null;
-  afterPayload?: string | null;
-  traceId?: string | null;
-  createdAt: string;
-}
-
 export interface IssueComment {
   id: string;
   issueId: string;
@@ -71,9 +59,14 @@ export interface IssueComment {
   updatedAt: string;
 }
 
-export interface ToastMessage {
+export interface AuditEvent {
   id: string;
-  title: string;
-  message: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  actorId?: string | null;
+  entityType: string;
+  entityId: string;
+  action: string;
+  beforePayload?: string | null;
+  afterPayload?: string | null;
+  traceId?: string | null;
+  createdAt: string;
 }

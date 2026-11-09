@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { BoardCard, IssueStatus, IssueComment, AuditEvent } from '../../types/board';
+import { BoardCard, IssueStatus, IssueComment, AuditEvent } from '../types/board.types';
 import { 
-  X, 
   MessageSquare, 
   History, 
   AlertTriangle, 
@@ -9,8 +8,11 @@ import {
   ShieldCheck, 
   ArrowRight
 } from 'lucide-react';
-import { fetchComments, addComment, fetchIssueHistory, transitionIssue } from '../../services/api';
+import { boardApi } from '../services/boardApi';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
+import { formatDate, formatTime } from '@/utils/formatDate';
 
 interface IssueDetailModalProps {
   card: BoardCard | null;
@@ -32,28 +34,28 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const queryClient = useQueryClient();
 
-  if (!isOpen || !card) return null;
-
   // Comments Query
   const { data: comments = [], refetch: refetchComments, isLoading: commentsLoading } = useQuery<IssueComment[]>({
-    queryKey: ['issue-comments', card.id],
-    queryFn: () => fetchComments(card.id),
-    enabled: isOpen && activeTab === 'comments',
+    queryKey: ['issue-comments', card?.id],
+    queryFn: () => (card ? boardApi.fetchComments(card.id) : Promise.resolve([])),
+    enabled: isOpen && !!card && activeTab === 'comments',
   });
 
   // History Query
   const { data: auditHistory = [], isLoading: historyLoading } = useQuery<AuditEvent[]>({
-    queryKey: ['issue-history', card.id],
-    queryFn: () => fetchIssueHistory(card.id),
-    enabled: isOpen && activeTab === 'history',
+    queryKey: ['issue-history', card?.id],
+    queryFn: () => (card ? boardApi.fetchIssueHistory(card.id) : Promise.resolve([])),
+    enabled: isOpen && !!card && activeTab === 'history',
   });
+
+  if (!isOpen || !card) return null;
 
   // Handle Status Transition
   const handleTransition = async (targetStatus: IssueStatus, sendStaleVersion: boolean = false) => {
     try {
       setIsTransitioning(true);
       const effectiveVersion = sendStaleVersion ? Math.max(0, card.version - 1) : card.version;
-      const updated = await transitionIssue(card.id, {
+      const updated = await boardApi.transitionIssue(card.id, {
         targetStatus,
         version: effectiveVersion,
       });
@@ -85,7 +87,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
     if (!newCommentText.trim()) return;
 
     try {
-      await addComment(card.id, newCommentText.trim());
+      await boardApi.addComment(card.id, newCommentText.trim());
       setNewCommentText('');
       refetchComments();
       queryClient.invalidateQueries({ queryKey: ['issue-history', card.id] });
@@ -97,37 +99,27 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
   const statusOptions: IssueStatus[] = ['BACKLOG', 'TO_DO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'ARCHIVED'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
-      <div 
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Top Header */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center gap-2.5">
-            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
-              {card.formattedKey}
-            </span>
-            <span className="text-xs font-mono text-slate-400 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded">
-              v{card.version}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <div className="flex items-center gap-2.5">
+          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+            {card.formattedKey}
+          </span>
+          <span className="text-xs font-mono text-slate-400 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded">
+            v{card.version}
+          </span>
         </div>
-
+      }
+      maxWidth="2xl"
+    >
+      <div className="space-y-5 -mt-2">
         {/* Tab Navigation */}
-        <div className="flex items-center gap-6 px-6 border-b border-slate-200 dark:border-slate-800 text-xs font-medium bg-white dark:bg-slate-900">
+        <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 text-xs font-medium pb-2">
           <button
             onClick={() => setActiveTab('details')}
-            className={`py-3 border-b-2 flex items-center gap-1.5 transition-colors ${
+            className={`pb-2 border-b-2 flex items-center gap-1.5 transition-colors -mb-2.5 ${
               activeTab === 'details'
                 ? 'border-brand-500 text-brand-600 dark:text-brand-400 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
@@ -138,7 +130,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('comments')}
-            className={`py-3 border-b-2 flex items-center gap-1.5 transition-colors ${
+            className={`pb-2 border-b-2 flex items-center gap-1.5 transition-colors -mb-2.5 ${
               activeTab === 'comments'
                 ? 'border-brand-500 text-brand-600 dark:text-brand-400 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
@@ -149,7 +141,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`py-3 border-b-2 flex items-center gap-1.5 transition-colors ${
+            className={`pb-2 border-b-2 flex items-center gap-1.5 transition-colors -mb-2.5 ${
               activeTab === 'history'
                 ? 'border-brand-500 text-brand-600 dark:text-brand-400 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
@@ -161,7 +153,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
         </div>
 
         {/* Modal Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <div className="max-h-[60vh] overflow-y-auto space-y-4 pr-1">
           {activeTab === 'details' && (
             <>
               {/* Title */}
@@ -244,8 +236,8 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
 
               {/* Created & Updated dates */}
               <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                <span>Created {new Date(card.createdAt).toLocaleDateString()}</span>
-                <span>Last updated {new Date(card.updatedAt).toLocaleTimeString()}</span>
+                <span>Created {formatDate(card.createdAt)}</span>
+                <span>Last updated {formatTime(card.updatedAt)}</span>
               </div>
             </>
           )}
@@ -253,7 +245,6 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           {/* Comments Tab */}
           {activeTab === 'comments' && (
             <div className="space-y-4">
-              {/* Comment list */}
               {commentsLoading ? (
                 <div className="text-center py-8 text-xs text-slate-400">Loading comments...</div>
               ) : comments.length === 0 ? (
@@ -272,7 +263,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                           {c.authorName || 'Team Member'}
                         </span>
                         <span className="text-slate-400 font-mono">
-                          {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatTime(c.createdAt)}
                         </span>
                       </div>
                       <p className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{c.body}</p>
@@ -290,14 +281,14 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                   placeholder="Write a comment..."
                   className="flex-1 px-3 py-2 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-slate-100 placeholder-slate-400"
                 />
-                <button
+                <Button
                   type="submit"
+                  size="sm"
                   disabled={!newCommentText.trim()}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white flex items-center gap-1.5 transition-colors"
+                  leftIcon={<Send className="w-3.5 h-3.5" />}
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Send</span>
-                </button>
+                  Send
+                </Button>
               </form>
             </div>
           )}
@@ -321,7 +312,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                           {item.action}
                         </span>
                         <span className="text-[10px] text-slate-400 font-mono">
-                          {new Date(item.createdAt).toLocaleTimeString()}
+                          {formatTime(item.createdAt)}
                         </span>
                       </div>
                       {item.afterPayload && (
@@ -337,6 +328,6 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };

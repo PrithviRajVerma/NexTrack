@@ -1,20 +1,15 @@
-import { BoardCard, BoardView, CreateIssuePayload, TransitionPayload, IssueComment, AuditEvent } from '../types/board';
+import { apiClient } from '@/lib/axios';
+import { ENDPOINTS } from '@/services/api/endpoints';
+import { 
+  BoardCard, 
+  BoardView, 
+  CreateIssuePayload, 
+  TransitionPayload, 
+  IssueComment, 
+  AuditEvent 
+} from '../types/board.types';
 
-const TOKEN_KEY = 'nextrack_auth_token';
-
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem(TOKEN_KEY);
-};
-
-export const setAuthToken = (token: string): void => {
-  localStorage.setItem(TOKEN_KEY, token);
-};
-
-export const clearAuthToken = (): void => {
-  localStorage.removeItem(TOKEN_KEY);
-};
-
-// Initial Mock data for instant preview or offline mode matching Phase 0 prototype
+// High-fidelity fallback board state for offline demo
 export const initialMockBoard: BoardView = {
   projectId: '00000000-0000-0000-0000-000000000001',
   projectKey: 'NT',
@@ -209,119 +204,49 @@ export const initialMockBoard: BoardView = {
   },
 };
 
-const getHeaders = (): HeadersInit => {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-  const token = getAuthToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  return headers;
-};
-
-export class ApiError extends Error {
-  status: number;
-  data: any;
-
-  constructor(status: number, message: string, data?: any) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.data = data;
-  }
-}
-
-export const fetchBoardView = async (projectId: string): Promise<BoardView> => {
-  try {
-    const res = await fetch(`/api/v1/projects/${projectId}/board`, {
-      headers: getHeaders(),
-    });
-
-    if (!res.ok) {
-      if (res.status === 404 || res.status === 401 || res.status === 403) {
-        // Return initial mock board if local demo or endpoint not seeded yet
-        console.warn(`Board API returned ${res.status}. Falling back to default demo board state.`);
+export const boardApi = {
+  fetchBoardView: async (projectId: string): Promise<BoardView> => {
+    try {
+      const res = await apiClient.get<BoardView>(ENDPOINTS.PROJECTS.BOARD(projectId));
+      return res.data;
+    } catch (err: any) {
+      if (err?.status === 404 || err?.status === 401 || err?.status === 403 || err?.code === 'ERR_NETWORK') {
         return initialMockBoard;
       }
-      const errData = await res.json().catch(() => ({}));
-      throw new ApiError(res.status, errData.detail || errData.message || 'Failed to fetch board', errData);
+      throw err;
     }
+  },
 
-    return await res.json();
-  } catch (error) {
-    if (error instanceof ApiError) throw error;
-    console.warn('Network error fetching board, falling back to local demo state:', error);
-    return initialMockBoard;
-  }
-};
+  transitionIssue: async (issueId: string, payload: TransitionPayload): Promise<BoardCard> => {
+    const res = await apiClient.post<BoardCard>(ENDPOINTS.ISSUES.TRANSITIONS(issueId), payload);
+    return res.data;
+  },
 
-export const transitionIssue = async (issueId: string, payload: TransitionPayload): Promise<BoardCard> => {
-  const res = await fetch(`/api/v1/issues/${issueId}/transitions`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify(payload),
-  });
+  createIssue: async (projectId: string, payload: CreateIssuePayload): Promise<any> => {
+    const res = await apiClient.post(ENDPOINTS.PROJECTS.ISSUES(projectId), payload);
+    return res.data;
+  },
 
-  if (!res.ok) {
-    const errorJson = await res.json().catch(() => ({}));
-    const message = errorJson.detail || errorJson.title || errorJson.message || 'Status transition failed';
-    throw new ApiError(res.status, message, errorJson);
-  }
+  fetchComments: async (issueId: string): Promise<IssueComment[]> => {
+    try {
+      const res = await apiClient.get<IssueComment[]>(ENDPOINTS.ISSUES.COMMENTS(issueId));
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
 
-  return await res.json();
-};
+  addComment: async (issueId: string, body: string): Promise<IssueComment> => {
+    const res = await apiClient.post<IssueComment>(ENDPOINTS.ISSUES.COMMENTS(issueId), { body });
+    return res.data;
+  },
 
-export const createIssue = async (projectId: string, payload: CreateIssuePayload): Promise<any> => {
-  const res = await fetch(`/api/v1/projects/${projectId}/issues`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const errorJson = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, errorJson.detail || 'Failed to create issue', errorJson);
-  }
-
-  return await res.json();
-};
-
-export const fetchComments = async (issueId: string): Promise<IssueComment[]> => {
-  try {
-    const res = await fetch(`/api/v1/issues/${issueId}/comments`, {
-      headers: getHeaders(),
-    });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
-};
-
-export const addComment = async (issueId: string, body: string): Promise<IssueComment> => {
-  const res = await fetch(`/api/v1/issues/${issueId}/comments`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ body }),
-  });
-
-  if (!res.ok) {
-    const errorJson = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, errorJson.detail || 'Failed to post comment', errorJson);
-  }
-
-  return await res.json();
-};
-
-export const fetchIssueHistory = async (issueId: string): Promise<AuditEvent[]> => {
-  try {
-    const res = await fetch(`/api/v1/issues/${issueId}/history`, {
-      headers: getHeaders(),
-    });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
+  fetchIssueHistory: async (issueId: string): Promise<AuditEvent[]> => {
+    try {
+      const res = await apiClient.get<AuditEvent[]>(ENDPOINTS.ISSUES.HISTORY(issueId));
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
 };

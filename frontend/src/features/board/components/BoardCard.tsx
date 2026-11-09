@@ -1,5 +1,6 @@
 import React from 'react';
-import { BoardCard as BoardCardType, IssuePriority, IssueType } from '../../types/board';
+import { BoardCard as BoardCardType, IssuePriority, IssueType } from '../types/board.types';
+import { formatDate } from '@/utils/formatDate';
 import { 
   AlertCircle, 
   ArrowUp, 
@@ -25,7 +26,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({ card, onClick, onDragStart
     switch (priority) {
       case 'URGENT':
         return (
-          <span className="text-rose-500 font-bold flex items-center title='Urgent Priority'">
+          <span className="text-rose-500 font-bold flex items-center" title="Urgent Priority">
             <AlertCircle className="w-3.5 h-3.5" />
           </span>
         );
@@ -122,7 +123,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({ card, onClick, onDragStart
           {card.dueDate && (
             <span className="flex items-center gap-1 text-[10px]">
               <Calendar className="w-3 h-3" />
-              <span>{new Date(card.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+              <span>{formatDate(card.dueDate)}</span>
             </span>
           )}
         </div>

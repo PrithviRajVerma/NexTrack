@@ -1,5 +1,6 @@
 import React from 'react';
-import { IssuePriority, IssueType } from '../../types/board';
+import { IssuePriority, IssueType } from '../types/board.types';
+import { Button } from '@/components/ui/Button';
 import { Search, Plus, Filter, X, GitPullRequest, ShieldAlert } from 'lucide-react';
 
 interface BoardToolbarProps {
@@ -137,14 +138,14 @@ export const BoardToolbar: React.FC<BoardToolbarProps> = ({
         </button>
 
         {/* Create Issue Button */}
-        <button
+        <Button
+          size="sm"
           onClick={onOpenCreateModal}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-500/20 transition-all active:scale-95"
+          leftIcon={<Plus className="w-3.5 h-3.5" />}
         >
-          <Plus className="w-3.5 h-3.5" />
           <span>New Issue</span>
           <span className="text-[10px] bg-brand-700/60 px-1 rounded ml-1 font-mono hidden sm:inline">C</span>
-        </button>
+        </Button>
       </div>
     </div>
   );

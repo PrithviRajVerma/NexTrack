@@ -1,39 +1,30 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   BoardCard, 
-  BoardView, 
   CreateIssuePayload, 
   IssuePriority, 
   IssueStatus, 
-  IssueType, 
-  ToastMessage 
-} from '../../types/board';
-import { fetchBoardView, transitionIssue, createIssue, ApiError } from '../../services/api';
+  IssueType 
+} from '../types/board.types';
+import { ToastMessage } from '@/types/global';
+import { APP_CONSTANTS, COLUMN_DEFINITIONS } from '@/constants/app.constants';
+import { useBoard } from '../hooks/useBoard';
+import { useIssueTransitions } from '../hooks/useIssueTransitions';
 import { BoardColumn } from './BoardColumn';
 import { BoardToolbar } from './BoardToolbar';
-import { ToastContainer } from './ConflictToast';
+import { ConflictToastContainer } from './ConflictToast';
 import { CreateIssueModal } from './CreateIssueModal';
 import { IssueDetailModal } from './IssueDetailModal';
-import { Loader2 } from 'lucide-react';
+import { Loader } from '@/components/ui/Loader';
+import { ApiError } from '@/services/api/interceptors';
 
 interface KanbanBoardProps {
   projectId?: string;
 }
 
-const DEFAULT_PROJECT_ID = '00000000-0000-0000-0000-000000000001';
-
-const COLUMNS_CONFIG: { status: IssueStatus; title: string; dotColor: string }[] = [
-  { status: 'BACKLOG', title: 'Backlog', dotColor: 'bg-slate-400 dark:bg-slate-500' },
-  { status: 'TO_DO', title: 'To Do', dotColor: 'bg-blue-500' },
-  { status: 'IN_PROGRESS', title: 'In Progress', dotColor: 'bg-amber-500 animate-pulse' },
-  { status: 'IN_REVIEW', title: 'In Review', dotColor: 'bg-purple-500' },
-  { status: 'DONE', title: 'Done', dotColor: 'bg-emerald-500' },
-];
-
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId = DEFAULT_PROJECT_ID }) => {
-  const queryClient = useQueryClient();
-
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ 
+  projectId = APP_CONSTANTS.DEFAULT_PROJECT_ID 
+}) => {
   // Filters State
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<IssuePriority | 'ALL'>('ALL');
@@ -83,105 +74,37 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId = DEFAULT_PR
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Board Data Query
-  const { 
-    data: board, 
-    isLoading
-  } = useQuery<BoardView>({
-    queryKey: ['board', projectId],
-    queryFn: () => fetchBoardView(projectId),
-    staleTime: 5000,
-  });
+  // Board Hook
+  const { board, isLoading, createIssue } = useBoard(projectId);
 
-  // Optimistic Transition Mutation with Rollback on Conflict
-  const transitionMutation = useMutation({
-    mutationFn: async ({ card, targetStatus, triggerConflict }: { card: BoardCard; targetStatus: IssueStatus; triggerConflict: boolean }) => {
-      // If simulateConflict is active, pass a stale version (card.version - 1) to force 409 Conflict
-      const sendVersion = triggerConflict ? Math.max(0, card.version - 1) : card.version;
-      return await transitionIssue(card.id, {
-        targetStatus,
-        version: sendVersion,
-      });
-    },
-    onMutate: async ({ card, targetStatus }) => {
-      // 1. Cancel in-flight queries
-      await queryClient.cancelQueries({ queryKey: ['board', projectId] });
-
-      // 2. Snapshot current state for rollback
-      const previousBoard = queryClient.getQueryData<BoardView>(['board', projectId]);
-
-      // 3. Optimistically update local query cache
-      if (previousBoard) {
-        const sourceCol = card.status;
-        const targetCol = targetStatus;
-
-        const updatedCard: BoardCard = {
-          ...card,
-          status: targetCol,
-          version: card.version + 1,
-          updatedAt: new Date().toISOString(),
-        };
-
-        const nextColumns = { ...previousBoard.columns };
-
-        // Remove from source
-        if (nextColumns[sourceCol]) {
-          nextColumns[sourceCol] = nextColumns[sourceCol].filter((c) => c.id !== card.id);
-        }
-
-        // Add to target
-        if (nextColumns[targetCol]) {
-          nextColumns[targetCol] = [updatedCard, ...nextColumns[targetCol]];
-        } else {
-          nextColumns[targetCol] = [updatedCard];
-        }
-
-        queryClient.setQueryData<BoardView>(['board', projectId], {
-          ...previousBoard,
-          columns: nextColumns,
-        });
-      }
-
-      return { previousBoard, card };
-    },
-    onError: (err: any, _vars, context) => {
-      // Rollback to prior snapshot
-      if (context?.previousBoard) {
-        queryClient.setQueryData(['board', projectId], context.previousBoard);
-      }
-
-      if (err instanceof ApiError && err.status === 409) {
+  // Transition Hook
+  const transitionMutation = useIssueTransitions(
+    projectId,
+    (err: ApiError, card: BoardCard) => {
+      if (err.status === 409) {
         addToast(
           'Optimistic Concurrency Conflict (409)',
-          `Issue was modified by another user concurrently. The card "${context?.card?.formattedKey}" has been reverted to its original column.`,
+          `Issue was modified by another user concurrently. The card "${card.formattedKey}" has been reverted to its original column.`,
           'warning'
         );
-      } else if (err instanceof ApiError && err.status === 400) {
+      } else if (err.status === 400) {
         addToast(
           'Workflow State Machine Denied (400)',
           err.message || 'Transition disallowed by finite state machine rules.',
           'error'
         );
       } else {
-        addToast(
-          'Transition Failed',
-          err?.message || 'Could not transition issue. Card rolled back.',
-          'error'
-        );
+        addToast('Transition Failed', err.message || 'Could not transition issue. Card rolled back.', 'error');
       }
     },
-    onSuccess: (updatedCard) => {
+    (updatedCard: BoardCard) => {
       addToast(
         'Card Transitioned',
         `${updatedCard.formattedKey} moved to ${updatedCard.status} (version ${updatedCard.version})`,
         'success'
       );
-    },
-    onSettled: () => {
-      // Always refetch to sync authoritative database state
-      queryClient.invalidateQueries({ queryKey: ['board', projectId] });
-    },
-  });
+    }
+  );
 
   // Handle Drag & Drop
   const handleDragStart = (_e: React.DragEvent, card: BoardCard) => {
@@ -207,57 +130,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId = DEFAULT_PR
   // Create Issue Handler
   const handleCreateIssue = async (payload: CreateIssuePayload, initialStatus: IssueStatus) => {
     try {
-      const created = await createIssue(projectId, payload);
-      // If initialStatus is not BACKLOG, transition it
-      if (initialStatus !== 'BACKLOG' && created.id) {
-        await transitionIssue(created.id, {
-          targetStatus: initialStatus,
-          version: created.version || 0,
-        });
-      }
-
+      const created = await createIssue({ payload, initialStatus });
       addToast(
         'Issue Created',
         `${created.issueKey || 'New Issue'} created in ${initialStatus}`,
         'success'
       );
-      queryClient.invalidateQueries({ queryKey: ['board', projectId] });
-    } catch (err: any) {
-      // If backend is unreachable or local mock, add directly to query cache
-      console.warn('Backend create failed, updating local state:', err);
-      const mockKey = `NT-${Math.floor(Math.random() * 800) + 120}`;
-      const newCard: BoardCard = {
-        id: Math.random().toString(36).substring(2, 11),
-        projectId,
-        projectKey: 'NT',
-        issueNumber: 999,
-        formattedKey: mockKey,
-        title: payload.title,
-        status: initialStatus,
-        priority: payload.priority,
-        issueType: payload.issueType,
-        storyPoints: payload.storyPoints,
-        version: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        commentCount: 0,
-        attachmentCount: 0,
-        prCount: 0,
-        commitCount: 0,
-        branchCount: 0,
-      };
-
-      if (board) {
-        const nextCols = { ...board.columns };
-        nextCols[initialStatus] = [newCard, ...(nextCols[initialStatus] || [])];
-        queryClient.setQueryData(['board', projectId], {
-          ...board,
-          totalIssues: board.totalIssues + 1,
-          columns: nextCols,
-        });
-      }
-
-      addToast('Issue Created (Local)', `${mockKey} created in ${initialStatus}`, 'success');
+    } catch {
+      addToast('Issue Created (Local)', `Issue created in ${initialStatus}`, 'success');
     }
   };
 
@@ -276,27 +156,23 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId = DEFAULT_PR
 
     const query = searchQuery.trim().toLowerCase();
 
-    for (const col of COLUMNS_CONFIG) {
+    for (const col of COLUMN_DEFINITIONS) {
       const cardsInCol = board.columns[col.status] || [];
       result[col.status] = cardsInCol.filter((card) => {
-        // Search filter
         if (query) {
           const matchKey = card.formattedKey.toLowerCase().includes(query);
           const matchTitle = card.title.toLowerCase().includes(query);
           if (!matchKey && !matchTitle) return false;
         }
 
-        // Priority filter
         if (selectedPriority !== 'ALL' && card.priority !== selectedPriority) {
           return false;
         }
 
-        // Type filter
         if (selectedType !== 'ALL' && card.issueType !== selectedType) {
           return false;
         }
 
-        // PR filter
         if (onlyWithPRs && card.prCount === 0) {
           return false;
         }
@@ -308,7 +184,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId = DEFAULT_PR
     return result;
   }, [board, searchQuery, selectedPriority, selectedType, onlyWithPRs]);
 
-  // Total visible count calculation
   const totalVisible = useMemo(() => {
     return Object.values(filteredColumns).reduce((acc, cards) => acc + cards.length, 0);
   }, [filteredColumns]);
@@ -356,11 +231,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId = DEFAULT_PR
       <div className="flex-1 p-6 overflow-x-auto flex gap-4 items-start select-none">
         {isLoading && !board ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-            <span className="text-xs">Loading board projections...</span>
+            <Loader size="lg" text="Loading board projections..." />
           </div>
         ) : (
-          COLUMNS_CONFIG.map((col) => (
+          COLUMN_DEFINITIONS.map((col) => (
             <BoardColumn
               key={col.status}
               status={col.status}
@@ -400,13 +274,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId = DEFAULT_PR
               version: newVersion,
             });
           }
-          queryClient.invalidateQueries({ queryKey: ['board', projectId] });
         }}
         onErrorToast={addToast}
       />
 
       {/* Toast Notifications */}
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      <ConflictToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 };

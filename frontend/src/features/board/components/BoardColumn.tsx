@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BoardCard as BoardCardType, IssueStatus } from '../../types/board';
+import { BoardCard as BoardCardType, IssueStatus } from '../types/board.types';
 import { BoardCard } from './BoardCard';
 import { Plus } from 'lucide-react';
 
