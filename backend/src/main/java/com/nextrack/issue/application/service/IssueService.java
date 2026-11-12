@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nextrack.audit.api.dto.response.AuditEventResponse;
 import com.nextrack.audit.application.service.AuditService;
+import com.nextrack.notification.application.service.OutboxPublisher;
 import com.nextrack.issue.api.dto.request.CreateIssueRequest;
 import com.nextrack.issue.api.dto.request.TransitionIssueRequest;
 import com.nextrack.issue.api.dto.request.UpdateIssueRequest;
@@ -44,6 +45,7 @@ public class IssueService {
     private final BoardCardRepository boardCardRepository;
     private final ProjectService projectService;
     private final AuditService auditService;
+    private final OutboxPublisher outboxPublisher;
     private final ObjectMapper objectMapper;
 
     public IssueService(
@@ -51,12 +53,14 @@ public class IssueService {
             BoardCardRepository boardCardRepository,
             ProjectService projectService,
             AuditService auditService,
+            OutboxPublisher outboxPublisher,
             ObjectMapper objectMapper
     ) {
         this.issueRepository = issueRepository;
         this.boardCardRepository = boardCardRepository;
         this.projectService = projectService;
         this.auditService = auditService;
+        this.outboxPublisher = outboxPublisher;
         this.objectMapper = objectMapper;
     }
 
@@ -107,6 +111,20 @@ public class IssueService {
             );
         } catch (JsonProcessingException ignored) {}
 
+        // 6. Transactional Outbox Event for issue assignment
+        if (saved.getAssigneeId() != null && !saved.getAssigneeId().equals(requestingUserId)) {
+            String projectKey = projectService.getProjectKey(saved.getProjectId());
+            outboxPublisher.publish("ISSUE_ASSIGNED", Map.of(
+                    "recipientId", saved.getAssigneeId().toString(),
+                    "issueId", saved.getId().toString(),
+                    "issueNumber", saved.getIssueNumber(),
+                    "formattedKey", projectKey + "-" + saved.getIssueNumber(),
+                    "title", saved.getTitle(),
+                    "actorId", requestingUserId.toString(),
+                    "dedupKey", "ASSIGNED-" + saved.getId() + "-" + saved.getAssigneeId()
+            ));
+        }
+
         return saved;
     }
 
@@ -150,6 +168,7 @@ public class IssueService {
             assertAssigneeInProject(issue.getProjectId(), request.assigneeId());
         }
 
+        UUID oldAssigneeId = issue.getAssigneeId();
         issue.updateDetails(
                 request.title(),
                 request.description(),
@@ -160,7 +179,23 @@ public class IssueService {
                 request.storyPoints()
         );
 
-        return issueRepository.save(issue);
+        Issue saved = issueRepository.save(issue);
+
+        // Transactional Outbox Event if newly assigned
+        if (saved.getAssigneeId() != null && !saved.getAssigneeId().equals(oldAssigneeId) && !saved.getAssigneeId().equals(requestingUserId)) {
+            String projectKey = projectService.getProjectKey(saved.getProjectId());
+            outboxPublisher.publish("ISSUE_ASSIGNED", Map.of(
+                    "recipientId", saved.getAssigneeId().toString(),
+                    "issueId", saved.getId().toString(),
+                    "issueNumber", saved.getIssueNumber(),
+                    "formattedKey", projectKey + "-" + saved.getIssueNumber(),
+                    "title", saved.getTitle(),
+                    "actorId", requestingUserId.toString(),
+                    "dedupKey", "ASSIGNED-" + saved.getId() + "-" + saved.getAssigneeId()
+            ));
+        }
+
+        return saved;
     }
 
     @Transactional
@@ -209,6 +244,22 @@ public class IssueService {
                     null
             );
         } catch (JsonProcessingException ignored) {}
+
+        // Transactional Outbox Event for status transition
+        if (saved.getAssigneeId() != null && !saved.getAssigneeId().equals(requestingUserId)) {
+            String projectKey = projectService.getProjectKey(saved.getProjectId());
+            outboxPublisher.publish("ISSUE_STATUS_CHANGED", Map.of(
+                    "recipientId", saved.getAssigneeId().toString(),
+                    "issueId", saved.getId().toString(),
+                    "issueNumber", saved.getIssueNumber(),
+                    "formattedKey", projectKey + "-" + saved.getIssueNumber(),
+                    "title", saved.getTitle(),
+                    "fromStatus", fromStatus.name(),
+                    "toStatus", saved.getStatus().name(),
+                    "actorId", requestingUserId.toString(),
+                    "dedupKey", "STATUS-" + saved.getId() + "-" + saved.getStatus().name() + "-" + saved.getVersion()
+            ));
+        }
 
         return saved;
     }

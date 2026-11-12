@@ -3,6 +3,7 @@ package com.nextrack.issue.application.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nextrack.audit.application.service.AuditService;
+import com.nextrack.notification.application.service.OutboxPublisher;
 import com.nextrack.issue.api.dto.response.CommentResponse;
 import com.nextrack.issue.domain.entity.Comment;
 import com.nextrack.issue.domain.entity.Issue;
@@ -24,6 +25,7 @@ public class CommentService {
     private final IssueService issueService;
     private final ProjectService projectService;
     private final AuditService auditService;
+    private final OutboxPublisher outboxPublisher;
     private final ObjectMapper objectMapper;
 
     public CommentService(
@@ -31,12 +33,14 @@ public class CommentService {
             IssueService issueService,
             ProjectService projectService,
             AuditService auditService,
+            OutboxPublisher outboxPublisher,
             ObjectMapper objectMapper
     ) {
         this.commentRepository = commentRepository;
         this.issueService = issueService;
         this.projectService = projectService;
         this.auditService = auditService;
+        this.outboxPublisher = outboxPublisher;
         this.objectMapper = objectMapper;
     }
 
@@ -63,6 +67,21 @@ public class CommentService {
                     null
             );
         } catch (JsonProcessingException ignored) {}
+
+        // Outbox event for comment on assigned issue
+        if (issue.getAssigneeId() != null && !issue.getAssigneeId().equals(authorId)) {
+            String projectKey = projectService.getProjectKey(issue.getProjectId());
+            outboxPublisher.publish("ISSUE_COMMENTED", Map.of(
+                    "recipientId", issue.getAssigneeId().toString(),
+                    "issueId", issue.getId().toString(),
+                    "issueNumber", issue.getIssueNumber(),
+                    "formattedKey", projectKey + "-" + issue.getIssueNumber(),
+                    "commentId", saved.getId().toString(),
+                    "title", issue.getTitle(),
+                    "actorId", authorId.toString(),
+                    "dedupKey", "COMMENT-" + saved.getId() + "-" + issue.getAssigneeId()
+            ));
+        }
 
         return saved;
     }

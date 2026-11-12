@@ -16,8 +16,8 @@
 | **3** | **Issue Domain & Atomic Counter** | Atomic monotonic numbering (`NT-101`), Issue CRUD | Atomic Issue Allocation | `COMPLETED` ✅ |
 | **4** | **Workflow FSM & Concurrency** | Fixed status FSM, JPA `@Version`, 409 Conflict | Concurrency & Transitions | `COMPLETED` ✅ |
 | **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `COMPLETED` ✅ |
-| **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `READY TO START` ⏳ |
-| **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `NOT STARTED` ⏹️ |
+| **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `COMPLETED` ✅ |
+| **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `READY TO START` ⏳ |
 | **8** | **GitHub App & Webhook Inbox** | Raw-byte HMAC filter, 2-phase claim, 5-min lease | Resilient Webhook Queue | `NOT STARTED` ⏹️ |
 | **9** | **Issue-to-Code Traceability** | Regex key extraction, M:N links, manual linking | Branches, Commits, PRs | `NOT STARTED` ⏹️ |
 | **10** | **CI/CD Builds & Deployments** | Dual-field status mapping, deployment timelines | CI/CD Build Badges | `NOT STARTED` ⏹️ |
@@ -26,8 +26,8 @@
 ---
 
 ## 🎯 Current Sprint & Active Focus
-- **Current Phase:** `Phase 6 — In-App Notifications & Transactional Outbox Pattern`
-- **Immediate Task:** Implement PostgreSQL-backed outbox pattern (`outbox_events` table), background worker with `SELECT FOR UPDATE SKIP LOCKED`, and deduplicated in-app notification center.
+- **Current Phase:** `Phase 7 — Secure File Attachments & Rich Search/Filtering`
+- **Immediate Task:** Implement file attachment pipeline with magic-byte MIME validation, local storage adapter with compensating rollback on DB failure, and Spring Data JPA Specifications for multi-criteria search.
 - **Blockers:** None.
 
 ---
@@ -303,24 +303,25 @@
 
 ### Phase 6: In-App Notifications & Transactional Outbox Pattern
 **Goal:** Implement reliable, at-least-once in-app notifications using the Transactional Outbox pattern without external message brokers.
-- **Status:** `READY TO START` ⏳
+- **Status:** `COMPLETED` ✅
 - **Dependencies:** Phase 5 complete.
 
 #### Detailed Task Checklist
-- [ ] **Database Migrations:**
-  - [ ] Create `V007__create_outbox_and_notifications.sql`:
+- [x] **Database Migrations:**
+  - [x] Create `V007__create_outbox_and_notifications.sql`:
     - `notifications` table (`id UUID PK`, `recipient_id FK`, `event_type`, `payload JSONB`, `dedup_key UK`, `read_at TIMESTAMPTZ NULL`, `created_at`).
     - `outbox_events` table (`id UUID PK`, `event_type`, `payload JSONB`, `status VARCHAR(16)`, `retry_count INT DEFAULT 0`, `next_retry_at TIMESTAMPTZ NULL`, `created_at`, `published_at TIMESTAMPTZ NULL`).
     - Partial index on `outbox_events (status, next_retry_at) WHERE status = 'PENDING'`.
-- [ ] **Transactional Outbox Publisher:**
-  - [ ] On issue assignment or mention, insert an `outbox_events` row in the same transaction as the domain change.
-  - [ ] Create `OutboxWorker` polling pending events every 500ms using `SELECT ... FOR UPDATE SKIP LOCKED`.
-  - [ ] Worker dispatches notification to `notifications` table using `dedup_key` to guarantee idempotent delivery.
-  - [ ] Implement exponential backoff with jitter on delivery failure; cap retries at 5 attempts before marking `FAILED`.
-- [ ] **Notification Center REST API & UI:**
-  - [ ] `GET /api/v1/notifications` (unread list + count).
-  - [ ] `PATCH /api/v1/notifications/{id}/read` (mark read).
-  - [ ] React Notification Drawer with real-time unread counter badge.
+- [x] **Transactional Outbox Publisher:**
+  - [x] On issue assignment, status transition, or comment, insert an `outbox_events` row in the same transaction as the domain change (`Propagation.MANDATORY`).
+  - [x] Create `OutboxWorker` polling pending events every 500ms using `SELECT ... FOR UPDATE SKIP LOCKED`.
+  - [x] Worker dispatches notification to `notifications` table using `dedup_key` to guarantee idempotent delivery.
+  - [x] Implement exponential backoff with jitter on delivery failure; cap retries at 5 attempts before marking `FAILED`.
+- [x] **Notification Center REST API & UI:**
+  - [x] `GET /api/v1/notifications` (unread list + count).
+  - [x] `PATCH /api/v1/notifications/{id}/read` (mark read).
+  - [x] `PATCH /api/v1/notifications/read-all` (mark all read).
+  - [x] React Notification Drawer (`src/features/notification/`) with real-time unread counter badge in Header.
 
 #### Definition of Done
 - Outbox events are committed atomically with business changes.

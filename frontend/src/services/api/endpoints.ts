@@ -17,5 +17,10 @@ export const ENDPOINTS = {
     COMMENTS: (issueId: string) => `/issues/${issueId}/comments`,
     HISTORY: (issueId: string) => `/issues/${issueId}/history`,
   },
+  NOTIFICATIONS: {
+    BASE: '/notifications',
+    MARK_READ: (id: string) => `/notifications/${id}/read`,
+    MARK_ALL_READ: '/notifications/read-all',
+  },
   HEALTH: '/actuator/health',
 } as const;

@@ -1,10 +1,11 @@
-import React from 'react';
-import { Kanban, ShieldCheck, Sun, Moon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Kanban, ShieldCheck, Sun, Moon, Bell } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/axios';
 import { ENDPOINTS } from '@/services/api/endpoints';
 import { HealthResponse } from '@/types/api';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { NotificationDrawer, useNotifications } from '@/features/notification';
 
 interface HeaderProps {
   isDark: boolean;
@@ -14,6 +15,11 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ isDark, onToggleTheme }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  // Notifications unread counter
+  const { data: notificationData } = useNotifications(0, 1);
+  const unreadCount = notificationData?.unreadCount ?? 0;
 
   // Health Query to verify backend connection
   const { data: health, isLoading } = useQuery<HealthResponse>({
@@ -104,6 +110,21 @@ export const Header: React.FC<HeaderProps> = ({ isDark, onToggleTheme }) => {
           </span>
         </div>
 
+        {/* Notifications Button */}
+        <button
+          onClick={() => setIsNotificationOpen(true)}
+          className="relative p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+          title="Notifications"
+          aria-label="Notifications"
+        >
+          <Bell className="w-4 h-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-brand-500 text-[9px] font-mono font-bold text-white shadow-xs">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </button>
+
         {/* Theme Toggle Button */}
         <button
           onClick={onToggleTheme}
@@ -113,6 +134,11 @@ export const Header: React.FC<HeaderProps> = ({ isDark, onToggleTheme }) => {
           {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
         </button>
       </div>
+
+      <NotificationDrawer 
+        isOpen={isNotificationOpen} 
+        onClose={() => setIsNotificationOpen(false)} 
+      />
     </header>
   );
 };
