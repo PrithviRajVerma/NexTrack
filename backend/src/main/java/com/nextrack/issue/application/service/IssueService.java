@@ -16,12 +16,15 @@ import com.nextrack.issue.domain.entity.Issue;
 import com.nextrack.issue.domain.entity.IssueStatus;
 import com.nextrack.issue.domain.repository.BoardCardRepository;
 import com.nextrack.issue.domain.repository.IssueRepository;
+import com.nextrack.issue.domain.specification.IssueFilterParams;
+import com.nextrack.issue.domain.specification.IssueSpecification;
 import com.nextrack.issue.domain.workflow.IssueStatusTransitionRule;
 import com.nextrack.project.application.service.ProjectService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.modulith.NamedInterface;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
@@ -138,6 +141,15 @@ public class IssueService {
     }
 
     @Transactional(readOnly = true)
+    public UUID getIssueProjectId(UUID issueId, UUID requestingUserId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() -> new IllegalArgumentException("Issue not found"));
+
+        assertUserCanAccessProject(issue.getProjectId(), requestingUserId);
+        return issue.getProjectId();
+    }
+
+    @Transactional(readOnly = true)
     public Issue getIssueByProjectAndNumber(UUID projectId, long issueNumber, UUID requestingUserId) {
         assertUserCanAccessProject(projectId, requestingUserId);
 
@@ -147,6 +159,16 @@ public class IssueService {
 
     @Transactional(readOnly = true)
     public Page<Issue> listIssues(UUID projectId, Pageable pageable, UUID requestingUserId) {
+        return searchIssues(projectId, IssueFilterParams.empty(), pageable, requestingUserId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Issue> searchIssues(
+            UUID projectId,
+            IssueFilterParams filters,
+            Pageable pageable,
+            UUID requestingUserId
+    ) {
         assertUserCanAccessProject(projectId, requestingUserId);
 
         int pageSize = pageable.getPageSize() <= 0 ? DEFAULT_PAGE_SIZE : Math.min(pageable.getPageSize(), MAX_PAGE_SIZE);
@@ -154,7 +176,8 @@ public class IssueService {
         Sort sort = pageable.getSort().isSorted() ? pageable.getSort() : Sort.by(Sort.Direction.DESC, "createdAt");
 
         Pageable boundedPageable = PageRequest.of(pageNumber, pageSize, sort);
-        return issueRepository.findByProjectId(projectId, boundedPageable);
+        Specification<Issue> spec = IssueSpecification.withFilters(projectId, filters);
+        return issueRepository.findAll(spec, boundedPageable);
     }
 
     @Transactional

@@ -9,6 +9,10 @@ import com.nextrack.issue.api.dto.response.IssueResponse;
 import com.nextrack.issue.api.mapper.IssueMapper;
 import com.nextrack.issue.application.service.IssueService;
 import com.nextrack.issue.domain.entity.Issue;
+import com.nextrack.issue.domain.entity.IssuePriority;
+import com.nextrack.issue.domain.entity.IssueStatus;
+import com.nextrack.issue.domain.entity.IssueType;
+import com.nextrack.issue.domain.specification.IssueFilterParams;
 import com.nextrack.shared.security.UserPrincipal;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -18,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,10 +50,32 @@ public class IssueController {
     @GetMapping("/projects/{projectId}/issues")
     public ResponseEntity<Page<IssueResponse>> listProjectIssues(
             @PathVariable UUID projectId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<IssueStatus> status,
+            @RequestParam(required = false) List<IssuePriority> priority,
+            @RequestParam(required = false) List<IssueType> type,
+            @RequestParam(required = false) UUID assigneeId,
+            @RequestParam(required = false) UUID reporterId,
+            @RequestParam(required = false) Instant dueBefore,
+            @RequestParam(required = false) Instant dueAfter,
+            @RequestParam(required = false) Boolean unassigned,
+            @RequestParam(required = false, defaultValue = "false") Boolean includeArchived,
             Pageable pageable,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Page<Issue> page = issueService.listIssues(projectId, pageable, principal.id());
+        IssueFilterParams filters = new IssueFilterParams(
+                search,
+                status,
+                priority,
+                type,
+                assigneeId,
+                reporterId,
+                dueBefore,
+                dueAfter,
+                unassigned,
+                includeArchived
+        );
+        Page<Issue> page = issueService.searchIssues(projectId, filters, pageable, principal.id());
         String projectKey = issueService.getProjectKey(projectId);
         Page<IssueResponse> responsePage = page.map(issue -> IssueMapper.toResponse(issue, projectKey));
         return ResponseEntity.ok(responsePage);

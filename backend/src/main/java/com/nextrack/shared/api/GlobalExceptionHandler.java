@@ -1,5 +1,8 @@
 package com.nextrack.shared.api;
 
+import com.nextrack.shared.exception.AttachmentNotFoundException;
+import com.nextrack.shared.exception.DisallowedFileTypeException;
+import com.nextrack.shared.exception.StorageOperationException;
 import com.nextrack.shared.exception.WorkflowTransitionDeniedException;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +19,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -40,6 +44,70 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(DisallowedFileTypeException.class)
+    public ResponseEntity<ApiErrorResponse> handleDisallowedFileType(
+            DisallowedFileTypeException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("Disallowed file type at {}: {}", request.getRequestURI(), ex.getMessage());
+        ApiErrorResponse response = ApiErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Disallowed File Type",
+                ex.getMessage(),
+                "DISALLOWED_FILE_TYPE",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(AttachmentNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleAttachmentNotFound(
+            AttachmentNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("Attachment not found at {}: {}", request.getRequestURI(), ex.getMessage());
+        ApiErrorResponse response = ApiErrorResponse.of(
+                HttpStatus.NOT_FOUND.value(),
+                "Attachment Not Found",
+                ex.getMessage(),
+                "ATTACHMENT_NOT_FOUND",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("Upload size limit exceeded at {}: {}", request.getRequestURI(), ex.getMessage());
+        ApiErrorResponse response = ApiErrorResponse.of(
+                HttpStatus.PAYLOAD_TOO_LARGE.value(),
+                "Payload Too Large",
+                "Uploaded file exceeds maximum permitted size of 10 MB.",
+                "PAYLOAD_TOO_LARGE",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
+    }
+
+    @ExceptionHandler(StorageOperationException.class)
+    public ResponseEntity<ApiErrorResponse> handleStorageOperation(
+            StorageOperationException ex,
+            HttpServletRequest request
+    ) {
+        log.error("Storage operation failure at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        ApiErrorResponse response = ApiErrorResponse.of(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Storage Failure",
+                "File storage operation failed.",
+                "STORAGE_ERROR",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

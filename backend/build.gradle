@@ -48,6 +48,7 @@ dependencies {
     implementation 'com.auth0:java-jwt:4.4.0'
     implementation 'com.bucket4j:bucket4j-core:8.10.1'
     implementation 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
+    implementation 'org.apache.tika:tika-core:2.9.2'
 
     // Spring Modulith Core
     implementation 'org.springframework.modulith:spring-modulith-starter-core'

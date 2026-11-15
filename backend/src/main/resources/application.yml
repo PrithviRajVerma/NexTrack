@@ -18,6 +18,12 @@ spring:
       connection-timeout: 30000
       max-lifetime: 1800000
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
@@ -79,6 +85,9 @@ nextrack:
     oauth2:
       redirect-uri: ${NEXTRACK_OAUTH2_REDIRECT_URI:http://localhost:5173/auth/callback}
       login-error-uri: ${NEXTRACK_OAUTH2_LOGIN_ERROR_URI:http://localhost:5173/login?error=oauth2_failure}
+  attachments:
+    storage-dir: ${NEXTRACK_ATTACHMENT_STORAGE_DIR:/tmp/nextrack-attachments}
+    max-file-size-bytes: 10485760 # 10 MB
   integrations:
     github:
       webhook:
