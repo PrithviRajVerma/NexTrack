@@ -12,7 +12,8 @@ import {
   CheckSquare, 
   Bug, 
   Layers,
-  Calendar
+  Calendar,
+  Paperclip
 } from 'lucide-react';
 
 interface BoardCardProps {
@@ -112,6 +113,12 @@ export const BoardCard: React.FC<BoardCardProps> = ({ card, onClick, onDragStart
             <span className="flex items-center gap-1 hover:text-slate-700 dark:hover:text-slate-300">
               <MessageSquare className="w-3 h-3" />
               <span>{card.commentCount}</span>
+            </span>
+          )}
+          {card.attachmentCount > 0 && (
+            <span className="flex items-center gap-1 hover:text-slate-700 dark:hover:text-slate-300" title={`${card.attachmentCount} attachments`}>
+              <Paperclip className="w-3 h-3" />
+              <span>{card.attachmentCount}</span>
             </span>
           )}
           {card.prCount > 0 && (

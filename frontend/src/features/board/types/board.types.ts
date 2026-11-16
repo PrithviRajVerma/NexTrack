@@ -70,3 +70,14 @@ export interface AuditEvent {
   traceId?: string | null;
   createdAt: string;
 }
+
+export interface IssueAttachment {
+  id: string;
+  issueId: string;
+  uploaderId: string;
+  originalFilename: string;
+  contentType: string;
+  sizeBytes: number;
+  checksum: string;
+  createdAt: string;
+}

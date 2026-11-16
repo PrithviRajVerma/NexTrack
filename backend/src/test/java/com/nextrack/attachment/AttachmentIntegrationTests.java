@@ -121,8 +121,8 @@ class AttachmentIntegrationTests {
                 .andReturn();
 
         BoardViewResponse board = objectMapper.readValue(boardRes.getResponse().getContentAsString(), BoardViewResponse.class);
-        assertThat(board.columns().get("BACKLOG")).hasSize(1);
-        assertThat(board.columns().get("BACKLOG").get(0).attachmentCount()).isEqualTo(1);
+        assertThat(board.columns().get(IssueStatus.BACKLOG)).hasSize(1);
+        assertThat(board.columns().get(IssueStatus.BACKLOG).get(0).attachmentCount()).isEqualTo(1);
     }
 
     @Test
@@ -146,7 +146,7 @@ class AttachmentIntegrationTests {
                         .file(file)
                         .header("Authorization", token))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errorCode").value("DISALLOWED_FILE_TYPE"));
+                .andExpect(jsonPath("$.code").value("DISALLOWED_FILE_TYPE"));
 
         assertThat(attachmentRepository.countByIssueIdAndDeletedAtIsNull(issue.id())).isZero();
     }
@@ -239,8 +239,8 @@ class AttachmentIntegrationTests {
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.content[0].priority").value("URGENT"));
 
-        // 3. Filter by type "FEATURE"
-        mockMvc.perform(get("/api/v1/projects/" + proj.id() + "/issues?type=FEATURE")
+        // 3. Filter by type "STORY"
+        mockMvc.perform(get("/api/v1/projects/" + proj.id() + "/issues?type=STORY")
                         .header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))

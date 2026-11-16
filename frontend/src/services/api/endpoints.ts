@@ -16,6 +16,8 @@ export const ENDPOINTS = {
     TRANSITIONS: (issueId: string) => `/issues/${issueId}/transitions`,
     COMMENTS: (issueId: string) => `/issues/${issueId}/comments`,
     HISTORY: (issueId: string) => `/issues/${issueId}/history`,
+    ATTACHMENTS: (issueId: string) => `/issues/${issueId}/attachments`,
+    ATTACHMENT_DETAIL: (issueId: string, attachmentId: string) => `/issues/${issueId}/attachments/${attachmentId}`,
   },
   NOTIFICATIONS: {
     BASE: '/notifications',

@@ -6,7 +6,8 @@ import {
   CreateIssuePayload, 
   TransitionPayload, 
   IssueComment, 
-  AuditEvent 
+  AuditEvent,
+  IssueAttachment 
 } from '../types/board.types';
 
 // High-fidelity fallback board state for offline demo
@@ -248,5 +249,48 @@ export const boardApi = {
     } catch {
       return [];
     }
+  },
+
+  fetchAttachments: async (issueId: string): Promise<IssueAttachment[]> => {
+    try {
+      const res = await apiClient.get<IssueAttachment[]>(ENDPOINTS.ISSUES.ATTACHMENTS(issueId));
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
+
+  uploadAttachment: async (issueId: string, file: File): Promise<IssueAttachment> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await apiClient.post<IssueAttachment>(
+      ENDPOINTS.ISSUES.ATTACHMENTS(issueId),
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return res.data;
+  },
+
+  downloadAttachment: async (issueId: string, attachmentId: string, filename: string): Promise<void> => {
+    const res = await apiClient.get(
+      ENDPOINTS.ISSUES.ATTACHMENT_DETAIL(issueId, attachmentId),
+      { responseType: 'blob' }
+    );
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+
+  deleteAttachment: async (issueId: string, attachmentId: string): Promise<void> => {
+    await apiClient.delete(ENDPOINTS.ISSUES.ATTACHMENT_DETAIL(issueId, attachmentId));
   },
 };

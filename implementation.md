@@ -17,8 +17,8 @@
 | **4** | **Workflow FSM & Concurrency** | Fixed status FSM, JPA `@Version`, 409 Conflict | Concurrency & Transitions | `COMPLETED` ✅ |
 | **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `COMPLETED` ✅ |
 | **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `COMPLETED` ✅ |
-| **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `READY TO START` ⏳ |
-| **8** | **GitHub App & Webhook Inbox** | Raw-byte HMAC filter, 2-phase claim, 5-min lease | Resilient Webhook Queue | `NOT STARTED` ⏹️ |
+| **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `COMPLETED` ✅ |
+| **8** | **GitHub App & Webhook Inbox** | Raw-byte HMAC filter, 2-phase claim, 5-min lease | Resilient Webhook Queue | `READY TO START` ⏳ |
 | **9** | **Issue-to-Code Traceability** | Regex key extraction, M:N links, manual linking | Branches, Commits, PRs | `NOT STARTED` ⏹️ |
 | **10** | **CI/CD Builds & Deployments** | Dual-field status mapping, deployment timelines | CI/CD Build Badges | `NOT STARTED` ⏹️ |
 | **11** | **Observability & Benchmarks** | k6 load tests (10k+ issues), Prometheus/Grafana | Empirical Verification | `NOT STARTED` ⏹️ |
@@ -26,8 +26,8 @@
 ---
 
 ## 🎯 Current Sprint & Active Focus
-- **Current Phase:** `Phase 7 — Secure File Attachments & Rich Search/Filtering`
-- **Immediate Task:** Implement file attachment pipeline with magic-byte MIME validation, local storage adapter with compensating rollback on DB failure, and Spring Data JPA Specifications for multi-criteria search.
+- **Current Phase:** `Phase 8 — GitHub App & Webhook Inbox Queue`
+- **Immediate Task:** Implement GitHub App RSA JWT auth, raw-byte HMAC-SHA256 signature verification filter, and PostgreSQL-backed Webhook Inbox queue with 2-phase claim/lease lifecycle.
 - **Blockers:** None.
 
 ---
@@ -331,26 +331,36 @@
 
 ### Phase 7: Attachments & Rich Search/Filtering
 **Goal:** Implement secure file attachment processing with magic-byte MIME validation, opaque storage keys, compensating storage cleanup, and multi-field issue search.
-- **Status:** `NOT STARTED` ⏹️
+- **Status:** `COMPLETED` ✅
 - **Dependencies:** Phase 6 complete.
 
 #### Detailed Task Checklist
-- [ ] **Database Migrations:**
-  - [ ] Create `V008__create_attachments.sql`:
+- [x] **Database Migrations:**
+  - [x] Create `V008__create_attachments.sql`:
     - `attachments` table (`id UUID PK`, `issue_id FK`, `uploader_id FK`, `original_filename`, `storage_key UK`, `content_type`, `size_bytes BIGINT`, `checksum`, `created_at`, `deleted_at`).
-- [ ] **Secure Attachment Pipeline:**
-  - [ ] Implement `StorageAdapter` interface with `LocalStorageAdapter` (storing files outside web root).
-  - [ ] Limit upload stream to 10 MB max before memory buffering.
-  - [ ] Validate file magic bytes (Apache Tika or explicit signature bytes) against allowed whitelist (JPEG, PNG, GIF, PDF, TXT, ZIP).
-  - [ ] Generate opaque server-side storage keys (`UUIDv4`).
-  - [ ] Implement compensating cleanup: if database metadata insertion fails, delete the saved file stream immediately.
-  - [ ] Expose authorized streaming download endpoint (`GET /api/v1/issues/{id}/attachments/{attachId}`) verifying project read permissions.
-- [ ] **Search & Filtering API:**
-  - [ ] Implement `IssueSpecification` (Spring Data JPA Specifications) supporting combined filtering: text search on title, status, priority, assignee, reporter, due date range, and labels.
+    - Update `v_board_cards` projection view with live `attachment_count`.
+- [x] **Secure Attachment Pipeline:**
+  - [x] Implement `StorageAdapter` interface with `LocalStorageAdapter` (storing files outside web root with path traversal protection).
+  - [x] Limit upload stream to 10 MB max before memory buffering (`413 Payload Too Large`).
+  - [x] Validate file magic bytes (`FileMagicByteValidator` with Apache Tika and explicit signatures) against allowed whitelist (JPEG, PNG, GIF, PDF, TXT, ZIP) and reject spoofed executables (PE/MZ, ELF, Mach-O).
+  - [x] Generate opaque server-side storage keys (`UUIDv4`).
+  - [x] Implement compensating cleanup: if database metadata insertion fails, delete the saved file stream immediately (`AttachmentServiceCompensatingTests`).
+  - [x] Expose authorized streaming download endpoint (`GET /api/v1/issues/{id}/attachments/{attachId}`) verifying project read permissions.
+- [x] **Search & Filtering API:**
+  - [x] Implement `IssueSpecification` (Spring Data JPA Specifications) supporting combined filtering: text search on title/description, status, priority, type, assignee, reporter, due date range, and archive flag.
+- [x] **Frontend Board Integration:**
+  - [x] Add Attachments tab in `IssueDetailModal.tsx` with drag-and-drop dropzone, file browse, download, and delete controls.
+  - [x] Add real-time attachment count badge to `BoardCard.tsx`.
+- [x] **Automated Verification Tests:**
+  - [x] Unit tests: `FileMagicByteValidatorTests` verifying magic byte detection, anti-spoofing defense, and path traversal sanitization.
+  - [x] Compensating rollback tests: `AttachmentServiceCompensatingTests` asserting disk cleanup when DB insert fails.
+  - [x] Testcontainers integration tests: `AttachmentIntegrationTests` verifying full upload, download stream, spoofed rejection, cross-project permission boundaries, and specification search.
+  - [x] Spring Modulith architectural boundaries test: `ModulithArchitectureTests` passing with 0 violations.
 
 #### Definition of Done
-- Uploading spoofed MIME types (e.g. `.exe` renamed to `.png`) is rejected.
+- Uploading spoofed MIME types (e.g. `.exe` renamed to `.png`) is rejected with 400 Bad Request.
 - Download verifies project membership; path traversal attacks (`../../`) are impossible.
+- Stored files on disk are cleaned up immediately if database persistence fails.
 
 ---
 

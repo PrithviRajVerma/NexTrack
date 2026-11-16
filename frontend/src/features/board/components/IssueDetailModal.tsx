@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
-import { BoardCard, IssueStatus, IssueComment, AuditEvent } from '../types/board.types';
+import React, { useState, useRef } from 'react';
+import { BoardCard, IssueStatus, IssueComment, AuditEvent, IssueAttachment } from '../types/board.types';
 import { 
   MessageSquare, 
   History, 
   AlertTriangle, 
   Send, 
   ShieldCheck, 
-  ArrowRight
+  ArrowRight,
+  Paperclip,
+  Download,
+  Trash2,
+  FileText,
+  Image as ImageIcon,
+  FileArchive,
+  UploadCloud,
+  File as FileGenericIcon
 } from 'lucide-react';
 import { boardApi } from '../services/boardApi';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -29,9 +37,12 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
   onStatusChanged,
   onErrorToast,
 }) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'history'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'history' | 'attachments'>('details');
   const [newCommentText, setNewCommentText] = useState('');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
   // Comments Query
@@ -46,6 +57,13 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
     queryKey: ['issue-history', card?.id],
     queryFn: () => (card ? boardApi.fetchIssueHistory(card.id) : Promise.resolve([])),
     enabled: isOpen && !!card && activeTab === 'history',
+  });
+
+  // Attachments Query
+  const { data: attachments = [], refetch: refetchAttachments, isLoading: attachmentsLoading } = useQuery<IssueAttachment[]>({
+    queryKey: ['issue-attachments', card?.id],
+    queryFn: () => (card ? boardApi.fetchAttachments(card.id) : Promise.resolve([])),
+    enabled: isOpen && !!card && (activeTab === 'attachments' || activeTab === 'details'),
   });
 
   if (!isOpen || !card) return null;
@@ -94,6 +112,65 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
     } catch (err: any) {
       onErrorToast('Comment Failed', err.message || 'Could not post comment', 'error');
     }
+  };
+
+  // Handle File Upload
+  const handleFileUpload = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) {
+      onErrorToast('File Too Large', 'Attachments must be 10 MB or smaller.', 'error');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      await boardApi.uploadAttachment(card.id, file);
+      refetchAttachments();
+      queryClient.invalidateQueries({ queryKey: ['board-view'] });
+      queryClient.invalidateQueries({ queryKey: ['issue-history', card.id] });
+    } catch (err: any) {
+      onErrorToast(
+        'Upload Rejected',
+        err.message || 'File upload failed. Verify file is not spoofed and matches allowed types.',
+        'error'
+      );
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDownload = async (attachment: IssueAttachment) => {
+    try {
+      await boardApi.downloadAttachment(card.id, attachment.id, attachment.originalFilename);
+    } catch (err: any) {
+      onErrorToast('Download Failed', err.message || 'Failed to download attachment', 'error');
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    try {
+      await boardApi.deleteAttachment(card.id, attachmentId);
+      refetchAttachments();
+      queryClient.invalidateQueries({ queryKey: ['board-view'] });
+      queryClient.invalidateQueries({ queryKey: ['issue-history', card.id] });
+    } catch (err: any) {
+      onErrorToast('Delete Failed', err.message || 'Failed to delete attachment', 'error');
+    }
+  };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  };
+
+  const getFileIcon = (contentType: string) => {
+    if (contentType.startsWith('image/')) return <ImageIcon className="w-4 h-4 text-purple-500" />;
+    if (contentType === 'application/pdf') return <FileText className="w-4 h-4 text-red-500" />;
+    if (contentType.includes('zip')) return <FileArchive className="w-4 h-4 text-amber-500" />;
+    return <FileGenericIcon className="w-4 h-4 text-blue-500" />;
   };
 
   const statusOptions: IssueStatus[] = ['BACKLOG', 'TO_DO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'ARCHIVED'];
@@ -149,6 +226,17 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           >
             <History className="w-3.5 h-3.5" />
             <span>Audit History</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('attachments')}
+            className={`pb-2 border-b-2 flex items-center gap-1.5 transition-colors -mb-2.5 ${
+              activeTab === 'attachments'
+                ? 'border-brand-500 text-brand-600 dark:text-brand-400 font-bold'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+            }`}
+          >
+            <Paperclip className="w-3.5 h-3.5" />
+            <span>Attachments ({attachments.length})</span>
           </button>
         </div>
 
@@ -320,6 +408,118 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                           {item.afterPayload}
                         </pre>
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Attachments Tab */}
+          {activeTab === 'attachments' && (
+            <div className="space-y-4">
+              {/* Dropzone / Upload Box */}
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(true);
+                }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFileUpload(e.dataTransfer.files[0]);
+                  }
+                }}
+                className={`p-6 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center transition-colors ${
+                  isDragOver
+                    ? 'border-brand-500 bg-brand-500/5'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <UploadCloud className="w-8 h-8 text-slate-400 dark:text-slate-500 mb-2" />
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Drag and drop files to attach, or{' '}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="text-brand-600 dark:text-brand-400 hover:underline font-bold"
+                  >
+                    browse
+                  </button>
+                </p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Supported: PNG, JPEG, GIF, PDF, ZIP, TXT (Max 10 MB). Verified via magic bytes.
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      handleFileUpload(e.target.files[0]);
+                    }
+                  }}
+                />
+                {isUploading && (
+                  <p className="text-xs text-brand-600 dark:text-brand-400 font-medium mt-2 animate-pulse">
+                    Uploading & verifying magic bytes...
+                  </p>
+                )}
+              </div>
+
+              {/* Attachments List */}
+              {attachmentsLoading ? (
+                <div className="text-center py-6 text-xs text-slate-400">Loading attachments...</div>
+              ) : attachments.length === 0 ? (
+                <div className="text-center py-6 text-xs text-slate-400">
+                  No attachments yet. Upload documents, screenshots, or logs above.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {attachments.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="p-2 rounded bg-slate-100 dark:bg-slate-700/50 flex-shrink-0">
+                          {getFileIcon(file.contentType)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate max-w-[280px]">
+                            {file.originalFilename}
+                          </p>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                            <span>{formatBytes(file.sizeBytes)}</span>
+                            <span>•</span>
+                            <span>{formatDate(file.createdAt)}</span>
+                            <span>•</span>
+                            <span className="font-mono">{file.contentType}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(file)}
+                          className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                          title="Download attachment"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAttachment(file.id)}
+                          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                          title="Delete attachment"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
