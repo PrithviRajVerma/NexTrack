@@ -18,16 +18,16 @@
 | **5** | **Interactive Kanban Board UI** | Board projections (`v_board_cards`), Drag-and-drop | Optimistic UI Board | `COMPLETED` ✅ |
 | **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `COMPLETED` ✅ |
 | **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `COMPLETED` ✅ |
-| **8** | **GitHub App & Webhook Inbox** | Raw-byte HMAC filter, 2-phase claim, 5-min lease | Resilient Webhook Queue | `READY TO START` ⏳ |
-| **9** | **Issue-to-Code Traceability** | Regex key extraction, M:N links, manual linking | Branches, Commits, PRs | `NOT STARTED` ⏹️ |
+| **8** | **GitHub App & Webhook Inbox** | Raw-byte HMAC filter, 2-phase claim, 5-min lease | Resilient Webhook Queue | `COMPLETED` ✅ |
+| **9** | **Issue-to-Code Traceability** | Regex key extraction, M:N links, manual linking | Branches, Commits, PRs | `READY TO START` ⏳ |
 | **10** | **CI/CD Builds & Deployments** | Dual-field status mapping, deployment timelines | CI/CD Build Badges | `NOT STARTED` ⏹️ |
 | **11** | **Observability & Benchmarks** | k6 load tests (10k+ issues), Prometheus/Grafana | Empirical Verification | `NOT STARTED` ⏹️ |
 
 ---
 
 ## 🎯 Current Sprint & Active Focus
-- **Current Phase:** `Phase 8 — GitHub App & Webhook Inbox Queue`
-- **Immediate Task:** Implement GitHub App RSA JWT auth, raw-byte HMAC-SHA256 signature verification filter, and PostgreSQL-backed Webhook Inbox queue with 2-phase claim/lease lifecycle.
+- **Current Phase:** `Phase 9 — Issue-to-Code Traceability (Branches, Commits, PRs & Manual Linking)`
+- **Immediate Task:** Implement regex key extraction (`NT-101`), M:N associations for branches, commits, PRs, and manual linking UI.
 - **Blockers:** None.
 
 ---
@@ -366,43 +366,44 @@
 
 ### Phase 8: GitHub App & Webhook Inbox Queue
 **Goal:** Implement the primary GitHub App integration, raw-byte HMAC-SHA256 signature verification filter, and PostgreSQL-backed Webhook Inbox queue with 2-phase claim transactions and supervisor recovery.
-- **Status:** `NOT STARTED` ⏹️
+- **Status:** `COMPLETED` ✅
 - **Dependencies:** Phase 2 and 3 complete.
 
 #### Detailed Task Checklist
-- [ ] **Database Migrations:**
-  - [ ] Create `V009__create_github_integrations_and_inbox.sql`:
+- [x] **Database Migrations:**
+  - [x] Create `V009__create_github_integrations_and_inbox.sql`:
     - `integration_installations` table (`id UUID PK`, `workspace_id FK`, `provider VARCHAR(32)`, `installation_id BIGINT`, `account_name`, `encrypted_webhook_secret`, `created_at`, `CONSTRAINT uq_integration_installation UNIQUE (provider, installation_id)`).
     - `connected_repositories` table (`id UUID PK`, `installation_id FK`, `provider`, `external_repo_id`, `name`, `full_name`, `html_url`, `default_branch`, `is_active BOOLEAN`, `last_synced_at`, `CONSTRAINT uq_connected_repo UNIQUE (installation_id, external_repo_id)`).
     - `project_connected_repositories` join table (`project_id FK`, `repository_id FK`, `connected_by FK`, `connected_at`, `PRIMARY KEY (project_id, repository_id)`).
     - `webhook_inbox_events` table (`id UUID PK`, `provider`, `delivery_id`, `event_type`, `payload JSONB`, `status VARCHAR(16)`, `lease_owner_token UUID NULL`, `processing_lease_expires_at TIMESTAMPTZ NULL`, `retry_count INT DEFAULT 0`, `next_retry_at TIMESTAMPTZ NULL`, `error_message TEXT NULL`, `received_at`, `processed_at TIMESTAMPTZ NULL`, `CONSTRAINT uq_webhook_provider_delivery UNIQUE (provider, delivery_id)`).
-    - Partial index: `idx_webhook_inbox_pending ON webhook_inbox_events (status, received_at) WHERE status = 'PENDING'`.
+    - Partial index: `idx_webhook_inbox_pending ON webhook_inbox_events (status, next_retry_at, received_at ASC) WHERE status = 'PENDING'`.
     - Partial index: `idx_webhook_inbox_lease ON webhook_inbox_events (status, processing_lease_expires_at) WHERE status = 'PROCESSING'`.
-- [ ] **GitHub App Auth Service (`GitHubAppAuthService`):**
-  - [ ] Parse RSA private key (supporting PKCS#1 and PKCS#8 formats via BouncyCastle).
-  - [ ] Sign ephemeral RS256 JWTs (10-minute validity).
-  - [ ] Exchange JWT for installation access tokens; cache in-memory with proactive 50-minute refresh.
-- [ ] **Raw-Byte Webhook HMAC Signature Filter (`WebhookSignatureFilter`):**
-  - [ ] Intercept `POST /api/v1/integrations/github/webhooks`.
-  - [ ] Stream bytes with a strict 2 MB limit (`BoundedInputStream`); return 413 if exceeded.
-  - [ ] Compute HMAC-SHA256 over exact raw bytes; compare with `X-Hub-Signature-256` using constant-time comparison (`MessageDigest.isEqual`).
-  - [ ] Reject missing or invalid signatures with `401 Unauthorized` before JSON parsing.
-  - [ ] Wrap verified request in `CachedBodyHttpServletRequest` for downstream controller.
-- [ ] **Webhook Ingestion Controller:**
-  - [ ] Parse JSON; reject malformed JSON with 400 Bad Request without writing to inbox.
-  - [ ] Deduplicate on `(provider, delivery_id)`; return 200 OK if duplicate.
-  - [ ] Insert fresh event with `status = 'PENDING'` and return `202 Accepted` (< 30ms latency target).
-- [ ] **Asynchronous Webhook Inbox Worker (`WebhookInboxWorker`):**
-  - [ ] Phase 1 (Claim): Select up to 25 events via `FOR UPDATE SKIP LOCKED`, set `status = 'PROCESSING'`, `lease_owner_token = UUID.randomUUID()`, `lease_expires = now() + 5 min`, and COMMIT immediately.
-  - [ ] Phase 2 (Process): For each claimed event, process in an isolated `@Transactional` method.
-  - [ ] Lease check before commit: Assert worker still owns lease token; if 0 rows updated, rollback and abort to prevent stale overwrites.
-  - [ ] Phase 3 (Failure): On exception, rollback domain writes; increment retry count; compute exponential backoff with jitter; mark `FAILED` after 5 retries.
-- [ ] **Stuck Event Supervisor:**
-  - [ ] `@Scheduled` task scanning events stuck in `PROCESSING` past lease expiration and resetting to `PENDING`.
-- [ ] **Automated Reliability Tests:**
-  - [ ] Forged HMAC signature returns 401 Unauthorized; zero DB records created.
-  - [ ] Repeated delivery of same `X-GitHub-Delivery` returns 200 without duplicate inbox rows.
-  - [ ] Poison pill webhook retries 5 times and transitions to `FAILED` without blocking worker.
+- [x] **GitHub App Auth Service (`GitHubAppAuthService`):**
+  - [x] Parse RSA private key (supporting PKCS#1 and PKCS#8 formats via BouncyCastle).
+  - [x] Sign ephemeral RS256 JWTs (10-minute validity).
+  - [x] Exchange JWT for installation access tokens; cache in-memory with proactive 50-minute refresh.
+- [x] **Raw-Byte Webhook HMAC Signature Filter (`WebhookSignatureFilter`):**
+  - [x] Intercept `POST /api/v1/integrations/github/webhooks`.
+  - [x] Stream bytes with a strict 2 MB limit (`BoundedInputStream`); return 413 if exceeded.
+  - [x] Compute HMAC-SHA256 over exact raw bytes; compare with `X-Hub-Signature-256` using constant-time comparison (`MessageDigest.isEqual`).
+  - [x] Reject missing or invalid signatures with `401 Unauthorized` before JSON parsing.
+  - [x] Wrap verified request in `CachedBodyHttpServletRequest` for downstream controller.
+- [x] **Webhook Ingestion Controller:**
+  - [x] Parse JSON; reject malformed JSON with 400 Bad Request without writing to inbox.
+  - [x] Deduplicate on `(provider, delivery_id)`; return 200 OK if duplicate.
+  - [x] Insert fresh event with `status = 'PENDING'` and return `202 Accepted` (< 30ms latency target).
+- [x] **Asynchronous Webhook Inbox Worker (`WebhookInboxWorker`):**
+  - [x] Phase 1 (Claim): Select up to 25 events via `FOR UPDATE SKIP LOCKED`, set `status = 'PROCESSING'`, `lease_owner_token = UUID.randomUUID()`, `lease_expires = now() + 5 min`, and COMMIT immediately.
+  - [x] Phase 2 (Process): For each claimed event, process in an isolated `@Transactional` method.
+  - [x] Lease check before commit: Assert worker still owns lease token; if 0 rows updated, rollback and abort to prevent stale overwrites.
+  - [x] Phase 3 (Failure): On exception, rollback domain writes; increment retry count; compute exponential backoff with jitter; mark `FAILED` after 5 retries.
+- [x] **Stuck Event Supervisor:**
+  - [x] `@Scheduled` task scanning events stuck in `PROCESSING` past lease expiration and resetting to `PENDING`.
+- [x] **Automated Reliability Tests:**
+  - [x] Forged HMAC signature returns 401 Unauthorized; zero DB records created.
+  - [x] Repeated delivery of same `X-GitHub-Delivery` returns 200 without duplicate inbox rows.
+  - [x] Poison pill webhook retries 5 times and transitions to `FAILED` without blocking worker.
+  - [x] Spring Modulith architectural boundaries test: `ModulithArchitectureTests` passing with 0 violations.
 
 #### Definition of Done
 - Webhooks are cryptographically authenticated against raw bytes and acknowledged in < 30ms.
