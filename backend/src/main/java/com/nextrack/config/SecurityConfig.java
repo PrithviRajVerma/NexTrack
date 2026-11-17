@@ -1,6 +1,7 @@
 package com.nextrack.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nextrack.development.infrastructure.security.WebhookSignatureFilter;
 import com.nextrack.identity.application.oauth2.CustomOAuth2UserService;
 import com.nextrack.identity.application.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.nextrack.identity.application.oauth2.OAuth2AuthenticationFailureHandler;
@@ -28,6 +29,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RateLimitingFilter rateLimitingFilter;
+    private final WebhookSignatureFilter webhookSignatureFilter;
     private final HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
@@ -37,6 +39,7 @@ public class SecurityConfig {
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             RateLimitingFilter rateLimitingFilter,
+            WebhookSignatureFilter webhookSignatureFilter,
             HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository,
             CustomOAuth2UserService customOAuth2UserService,
             OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler,
@@ -44,6 +47,7 @@ public class SecurityConfig {
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.rateLimitingFilter = rateLimitingFilter;
+        this.webhookSignatureFilter = webhookSignatureFilter;
         this.cookieAuthorizationRequestRepository = cookieAuthorizationRequestRepository;
         this.customOAuth2UserService = customOAuth2UserService;
         this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
@@ -94,6 +98,7 @@ public class SecurityConfig {
                         .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(webhookSignatureFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
