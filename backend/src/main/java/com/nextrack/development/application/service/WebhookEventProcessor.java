@@ -21,13 +21,16 @@ public class WebhookEventProcessor {
 
     private final WebhookInboxEventRepository webhookInboxEventRepository;
     private final ObjectMapper objectMapper;
+    private final IssueTraceabilityService issueTraceabilityService;
 
     public WebhookEventProcessor(
             WebhookInboxEventRepository webhookInboxEventRepository,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            IssueTraceabilityService issueTraceabilityService
     ) {
         this.webhookInboxEventRepository = webhookInboxEventRepository;
         this.objectMapper = objectMapper;
+        this.issueTraceabilityService = issueTraceabilityService;
     }
 
     /**
@@ -75,10 +78,16 @@ public class WebhookEventProcessor {
         switch (eventType) {
             case "ping" -> log.info("Received GitHub ping event: zen='{}'",
                     payload.has("zen") ? payload.get("zen").asText() : "");
-            case "push" -> log.info("Received GitHub push event on ref='{}'",
-                    payload.has("ref") ? payload.get("ref").asText() : "");
-            case "pull_request" -> log.info("Received GitHub pull_request action='{}'",
-                    payload.has("action") ? payload.get("action").asText() : "");
+            case "push" -> {
+                log.info("Received GitHub push event on ref='{}'",
+                        payload.has("ref") ? payload.get("ref").asText() : "");
+                issueTraceabilityService.processPushEvent(payload);
+            }
+            case "pull_request" -> {
+                log.info("Received GitHub pull_request action='{}'",
+                        payload.has("action") ? payload.get("action").asText() : "");
+                issueTraceabilityService.processPullRequestEvent(payload);
+            }
             case "workflow_run" -> log.info("Received GitHub workflow_run action='{}'",
                     payload.has("action") ? payload.get("action").asText() : "");
             case "deployment_status" -> log.info("Received GitHub deployment_status state='{}'",

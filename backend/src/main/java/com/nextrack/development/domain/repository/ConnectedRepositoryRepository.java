@@ -13,7 +13,11 @@ public interface ConnectedRepositoryRepository extends JpaRepository<ConnectedRe
 
     Optional<ConnectedRepository> findByInstallationIdAndExternalRepoId(UUID installationId, String externalRepoId);
 
+    Optional<ConnectedRepository> findFirstByExternalRepoId(String externalRepoId);
+
     List<ConnectedRepository> findAllByInstallationId(UUID installationId);
 
     Optional<ConnectedRepository> findByFullName(String fullName);
+
+    Optional<ConnectedRepository> findFirstByFullName(String fullName);
 }

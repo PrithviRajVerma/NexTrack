@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @NamedInterface
@@ -322,6 +323,16 @@ public class IssueService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<UUID> findIssueIdByProjectAndNumber(UUID projectId, long issueNumber) {
+        return issueRepository.findByProjectIdAndIssueNumber(projectId, issueNumber)
+                .map(Issue::getId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean issueExists(UUID issueId) {
+        return issueRepository.existsById(issueId);
+    }
+
     public String getProjectKey(UUID projectId) {
         return projectService.getProjectKey(projectId);
     }

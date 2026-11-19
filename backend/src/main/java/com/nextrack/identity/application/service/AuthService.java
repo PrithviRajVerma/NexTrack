@@ -3,12 +3,14 @@ package com.nextrack.identity.application.service;
 import com.nextrack.identity.domain.entity.User;
 import com.nextrack.identity.domain.entity.UserStatus;
 import com.nextrack.identity.domain.repository.UserRepository;
+import org.springframework.modulith.NamedInterface;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@NamedInterface
 @Service
 public class AuthService {
 
@@ -85,6 +87,12 @@ public class AuthService {
         if (rawRefreshToken != null && !rawRefreshToken.isBlank()) {
             refreshTokenService.revokeToken(rawRefreshToken);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public String getUserDisplayName(UUID userId) {
+        if (userId == null) return "User";
+        return userRepository.findById(userId).map(User::getDisplayName).orElse("User");
     }
 
     public record AuthResult(String accessToken, String refreshToken, User user) {}
