@@ -8,6 +8,8 @@ import {
   Minus, 
   MessageSquare, 
   GitPullRequest, 
+  GitCommit,
+  GitBranch,
   Bookmark, 
   CheckSquare, 
   Bug, 
@@ -122,9 +124,21 @@ export const BoardCard: React.FC<BoardCardProps> = ({ card, onClick, onDragStart
             </span>
           )}
           {card.prCount > 0 && (
-            <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+            <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400" title={`${card.prCount} pull requests`}>
               <GitPullRequest className="w-3 h-3" />
               <span>{card.prCount}</span>
+            </span>
+          )}
+          {card.commitCount > 0 && (
+            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400" title={`${card.commitCount} commits`}>
+              <GitCommit className="w-3 h-3" />
+              <span>{card.commitCount}</span>
+            </span>
+          )}
+          {card.branchCount > 0 && (
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title={`${card.branchCount} branches`}>
+              <GitBranch className="w-3 h-3" />
+              <span>{card.branchCount}</span>
             </span>
           )}
           {card.dueDate && (

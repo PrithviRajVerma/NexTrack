@@ -4,6 +4,7 @@ import { AuthLayout } from './layouts/AuthLayout';
 import { KanbanBoard } from '@/features/board';
 import { ArchitectureDashboard } from '@/features/dashboard';
 import { LoginForm } from '@/features/auth';
+import { ProjectDevelopmentView } from '@/features/development';
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,16 @@ export const router = createBrowserRouter([
       {
         path: 'board',
         element: <KanbanBoard />,
+      },
+      {
+        path: 'development',
+        element: (
+          <ProjectDevelopmentView
+            projectId="00000000-0000-0000-0000-000000000001"
+            projectKey="NT"
+            projectName="NexTrack Core Platform"
+          />
+        ),
       },
       {
         path: 'dashboard',

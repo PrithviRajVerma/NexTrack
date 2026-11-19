@@ -8,8 +8,8 @@ export const Sidebar: React.FC = () => {
 
   const links = [
     { label: 'Kanban Board', path: '/', icon: Kanban },
+    { label: 'Code & Telemetry', path: '/development', icon: FolderGit2 },
     { label: 'Architecture', path: '/dashboard', icon: ShieldCheck },
-    { label: 'Repositories', path: '/repositories', icon: FolderGit2, disabled: true },
     { label: 'Pull Requests', path: '/pull-requests', icon: GitPullRequest, disabled: true },
     { label: 'Members', path: '/members', icon: Users, disabled: true },
     { label: 'Settings', path: '/settings', icon: Settings, disabled: true },
@@ -53,7 +53,7 @@ export const Sidebar: React.FC = () => {
 
       <div className="p-3 rounded-xl bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
         <span className="font-semibold text-slate-800 dark:text-slate-200 block mb-0.5">NexTrack Hub</span>
-        <span>Version 0.5.0 (Phase 5)</span>
+        <span>Version 0.9.0 (Phase 9)</span>
       </div>
     </aside>
   );

@@ -14,9 +14,11 @@ import {
   Image as ImageIcon,
   FileArchive,
   UploadCloud,
-  File as FileGenericIcon
+  File as FileGenericIcon,
+  GitBranch
 } from 'lucide-react';
 import { boardApi } from '../services/boardApi';
+import { IssueDevelopmentPanel } from '@/features/development';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -27,7 +29,7 @@ interface IssueDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStatusChanged: (cardId: string, newStatus: IssueStatus, newVersion: number) => void;
-  onErrorToast: (title: string, message: string, type: 'warning' | 'error') => void;
+  onErrorToast: (title: string, message: string, type: 'warning' | 'error' | 'success') => void;
 }
 
 export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
@@ -37,7 +39,7 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
   onStatusChanged,
   onErrorToast,
 }) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'history' | 'attachments'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'history' | 'attachments' | 'development'>('details');
   const [newCommentText, setNewCommentText] = useState('');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -237,6 +239,17 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
           >
             <Paperclip className="w-3.5 h-3.5" />
             <span>Attachments ({attachments.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('development')}
+            className={`pb-2 border-b-2 flex items-center gap-1.5 transition-colors -mb-2.5 ${
+              activeTab === 'development'
+                ? 'border-brand-500 text-brand-600 dark:text-brand-400 font-bold'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+            }`}
+          >
+            <GitBranch className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Code & PRs ({(card.commitCount || 0) + (card.branchCount || 0) + (card.prCount || 0)})</span>
           </button>
         </div>
 
@@ -525,6 +538,17 @@ export const IssueDetailModal: React.FC<IssueDetailModalProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === 'development' && (
+            <IssueDevelopmentPanel
+              issueId={card.id}
+              issueKey={card.formattedKey}
+              onErrorToast={onErrorToast}
+              onLinksChanged={() => {
+                queryClient.invalidateQueries({ queryKey: ['board-view'] });
+              }}
+            />
           )}
         </div>
       </div>
