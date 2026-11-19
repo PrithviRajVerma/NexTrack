@@ -19,16 +19,16 @@
 | **6** | **Notifications & Transactional Outbox** | Outbox pattern (`outbox_events`), `SKIP LOCKED` worker | Reliable Async Events | `COMPLETED` ✅ |
 | **7** | **Attachments & Search Filtering** | Magic-byte MIME checks, compensating storage | Safe File Pipeline | `COMPLETED` ✅ |
 | **8** | **GitHub App & Webhook Inbox** | Raw-byte HMAC filter, 2-phase claim, 5-min lease | Resilient Webhook Queue | `COMPLETED` ✅ |
-| **9** | **Issue-to-Code Traceability** | Regex key extraction, M:N links, manual linking | Branches, Commits, PRs | `READY TO START` ⏳ |
-| **10** | **CI/CD Builds & Deployments** | Dual-field status mapping, deployment timelines | CI/CD Build Badges | `NOT STARTED` ⏹️ |
+| **9** | **Issue-to-Code Traceability** | Regex key extraction, M:N links, manual linking | Branches, Commits, PRs | `COMPLETED` ✅ |
+| **10** | **CI/CD Builds & Deployments** | Dual-field status mapping, deployment timelines | CI/CD Build Badges | `READY TO START` ⏳ |
 | **11** | **Observability & Benchmarks** | k6 load tests (10k+ issues), Prometheus/Grafana | Empirical Verification | `NOT STARTED` ⏹️ |
 
 ---
 
 ## 🎯 Current Sprint & Active Focus
-- **Current Phase:** `Phase 9 — Issue-to-Code Traceability (Branches, Commits, PRs & Manual Linking)`
-- **Immediate Task:** Implement regex key extraction (`NT-101`), M:N associations for branches, commits, PRs, and manual linking UI.
-- **Blockers:** None.
+- **Current Phase:** `Phase 10 — CI/CD Build & Deployment Pipeline Telemetry`
+- **Immediate Task:** Ingest GitHub Actions `workflow_run` webhooks and deployment status events; map dual-field status/conclusion; link build & deployment timeline badges to issues.
+- **Blockers:** None. Phase 9 is fully verified with 108 passing backend tests and production frontend bundle.
 
 ---
 
@@ -413,30 +413,32 @@
 
 ### Phase 9: Issue-to-Code Traceability (Branches, Commits, PRs & Manual Linking)
 **Goal:** Automatically extract issue keys (`NT-101`) from Git telemetry, maintain M:N associations with repositories, and provide a manual linking fallback modal.
-- **Status:** `NOT STARTED` ⏹️
+- **Status:** `COMPLETED` ✅
 - **Dependencies:** Phase 8 complete.
 
 #### Detailed Task Checklist
-- [ ] **Database Migrations:**
-  - [ ] Create `V010__create_development_artifacts.sql`:
+- [x] **Database Migrations:**
+  - [x] Create `V010__create_development_artifacts.sql`:
     - `development_branches` (`id UUID PK`, `repository_id FK`, `name`, `last_commit_sha`, `CONSTRAINT uq_branch_repo_name UNIQUE (repository_id, name)`).
     - `development_commits` (`id UUID PK`, `repository_id FK`, `commit_sha`, `message`, `author_name`, `author_email`, `commit_url`, `committed_at`, `CONSTRAINT uq_commit_repo_sha UNIQUE (repository_id, commit_sha)`).
     - `pull_requests` (`id UUID PK`, `repository_id FK`, `provider_pr_id`, `pr_number`, `title`, `description`, `source_branch`, `target_branch`, `pr_url`, `status`, `review_status`, `is_draft`, `merged_at`, `CONSTRAINT uq_pr_repo_num UNIQUE (repository_id, pr_number)`).
     - `issue_development_branches` (`issue_id FK`, `branch_id FK`, `link_type`, `linked_by FK NULL`, `linked_at`, `PRIMARY KEY (issue_id, branch_id)`).
     - `issue_development_commits` (`issue_id FK`, `commit_id FK`, `link_type`, `linked_by FK NULL`, `linked_at`, `PRIMARY KEY (issue_id, commit_id)`).
     - `issue_pull_requests` (`issue_id FK`, `pull_request_id FK`, `link_type`, `linked_by FK NULL`, `linked_at`, `PRIMARY KEY (issue_id, pull_request_id)`).
-- [ ] **Regex Issue-Key Parser:**
-  - [ ] Implement regex parser `\b([A-Z][A-Z0-9]{1,9})-(\d+)\b`.
-  - [ ] Extract keys from branch names, commit messages, and PR titles/descriptions.
-  - [ ] Validate matched keys against existing issues in projects linked via `project_connected_repositories`.
-  - [ ] Insert association rows with `link_type = 'AUTO_EXTRACTED'` using `ON CONFLICT DO NOTHING`.
-- [ ] **Manual Linking Fallback API:**
-  - [ ] `POST /api/v1/issues/{id}/development/links`: Manually link a branch, commit, or PR (`link_type = 'MANUAL'`, `linked_by = currentUser`).
-  - [ ] `DELETE /api/v1/issues/{id}/development/links/{linkId}`: Remove manual association without deleting repository record.
-- [ ] **Frontend Development Panels:**
-  - [ ] `IssueDevelopmentPanel` on Issue Detail view (displaying linked branches, commits, PR status pills, and `Auto` vs `Manual` link badges).
-  - [ ] `ProjectDevelopmentView` (listing connected repositories, sync status, and commit stream).
-  - [ ] Manual Link Modal allowing search by commit SHA or PR number.
+- [x] **Regex Issue-Key Parser:**
+  - [x] Implement regex parser `\b([A-Z][A-Z0-9]{1,9})-(\d+)\b`.
+  - [x] Extract keys from branch names, commit messages, and PR titles/descriptions.
+  - [x] Validate matched keys against existing issues in projects linked via `project_connected_repositories`.
+  - [x] Insert association rows with `link_type = 'AUTO_EXTRACTED'` with duplicate avoidance.
+- [x] **Manual Linking Fallback API:**
+  - [x] `POST /api/v1/issues/{id}/development/links`: Manually link a branch, commit, or PR (`link_type = 'MANUAL'`, `linked_by = currentUser`).
+  - [x] `DELETE /api/v1/issues/{id}/development/links/{linkId}`: Remove manual association without deleting repository record.
+  - [x] `GET /api/v1/issues/{id}/development/candidates`: Live candidate search in connected repositories.
+- [x] **Frontend Development Panels:**
+  - [x] `IssueDevelopmentPanel` on Issue Detail view (displaying linked branches, commits, PR status pills, and `Auto` vs `Manual` link badges).
+  - [x] `ProjectDevelopmentView` (listing connected repositories, sync status, and commit stream).
+  - [x] `ManualLinkModal` allowing search by commit SHA or PR number with 409 conflict detection.
+  - [x] Board Card telemetry counters (`commitCount`, `branchCount`, `prCount`).
 
 #### Definition of Done
 - Pushing a commit with message `NT-101: Fix authentication bug` automatically links the commit to issue `NT-101`.
