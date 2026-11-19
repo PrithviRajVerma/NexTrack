@@ -39,7 +39,7 @@ public interface WebhookInboxEventRepository extends JpaRepository<WebhookInboxE
     """, nativeQuery = true)
     List<WebhookInboxEvent> findStuckProcessingEvents(@Param("now") Instant now, @Param("limit") int limit);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("""
         UPDATE WebhookInboxEvent e
@@ -55,7 +55,7 @@ public interface WebhookInboxEventRepository extends JpaRepository<WebhookInboxE
         @Param("leaseExpiresAt") Instant leaseExpiresAt
     );
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("""
         UPDATE WebhookInboxEvent e
@@ -73,7 +73,7 @@ public interface WebhookInboxEventRepository extends JpaRepository<WebhookInboxE
         @Param("now") Instant now
     );
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("""
         UPDATE WebhookInboxEvent e
@@ -95,7 +95,7 @@ public interface WebhookInboxEventRepository extends JpaRepository<WebhookInboxE
         @Param("errorMessage") String errorMessage
     );
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("""
         UPDATE WebhookInboxEvent e

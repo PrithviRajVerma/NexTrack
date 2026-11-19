@@ -1,13 +1,15 @@
 package com.nextrack.development.domain.entity;
 
 import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
+
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "issue_pull_requests")
 @IdClass(IssuePullRequestId.class)
-public class IssuePullRequest {
+public class IssuePullRequest implements Persistable<IssuePullRequestId> {
 
     @Id
     @Column(name = "issue_id", nullable = false)
@@ -26,7 +28,12 @@ public class IssuePullRequest {
     @Column(name = "linked_at", nullable = false)
     private Instant linkedAt = Instant.now();
 
-    protected IssuePullRequest() {}
+    @Transient
+    private boolean isNew = true;
+
+    protected IssuePullRequest() {
+        this.isNew = false;
+    }
 
     public IssuePullRequest(UUID issueId, UUID pullRequestId, String linkType, UUID linkedBy) {
         this.issueId = issueId;
@@ -34,6 +41,23 @@ public class IssuePullRequest {
         this.linkType = linkType != null ? linkType : "AUTO_EXTRACTED";
         this.linkedBy = linkedBy;
         this.linkedAt = Instant.now();
+        this.isNew = true;
+    }
+
+    @Override
+    public IssuePullRequestId getId() {
+        return new IssuePullRequestId(issueId, pullRequestId);
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @PostPersist
+    @PostLoad
+    void markNotNew() {
+        this.isNew = false;
     }
 
     public UUID getIssueId() { return issueId; }

@@ -192,7 +192,7 @@ public class IssueTraceabilityService {
 
         Map<UUID, ConnectedRepository> repoCache = new HashMap<>();
 
-        List<LinkedBranchResponse> branches = issueBranchRepository.findAllByIdIssueId(issueId).stream()
+        List<LinkedBranchResponse> branches = issueBranchRepository.findAllByIssueId(issueId).stream()
                 .map(link -> {
                     DevelopmentBranch b = branchRepository.findById(link.getBranchId()).orElse(null);
                     if (b == null) return null;
@@ -207,7 +207,7 @@ public class IssueTraceabilityService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        List<LinkedCommitResponse> commits = issueCommitRepository.findAllByIdIssueId(issueId).stream()
+        List<LinkedCommitResponse> commits = issueCommitRepository.findAllByIssueId(issueId).stream()
                 .map(link -> {
                     DevelopmentCommit c = commitRepository.findById(link.getCommitId()).orElse(null);
                     if (c == null) return null;
@@ -223,7 +223,7 @@ public class IssueTraceabilityService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        List<LinkedPullRequestResponse> pullRequests = issuePullRequestRepository.findAllByIdIssueId(issueId).stream()
+        List<LinkedPullRequestResponse> pullRequests = issuePullRequestRepository.findAllByIssueId(issueId).stream()
                 .map(link -> {
                     PullRequest pr = pullRequestRepository.findById(link.getPullRequestId()).orElse(null);
                     if (pr == null) return null;
@@ -258,21 +258,21 @@ public class IssueTraceabilityService {
         switch (type) {
             case "BRANCH" -> {
                 DevelopmentBranch branch = resolveBranch(request, connectedRepoIds);
-                if (issueBranchRepository.existsByIdIssueIdAndIdBranchId(issueId, branch.getId())) {
+                if (issueBranchRepository.existsByIssueIdAndBranchId(issueId, branch.getId())) {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Branch is already linked to this issue");
                 }
                 issueBranchRepository.save(new IssueDevelopmentBranch(issueId, branch.getId(), "MANUAL", requestingUserId));
             }
             case "COMMIT" -> {
                 DevelopmentCommit commit = resolveCommit(request, connectedRepoIds);
-                if (issueCommitRepository.existsByIdIssueIdAndIdCommitId(issueId, commit.getId())) {
+                if (issueCommitRepository.existsByIssueIdAndCommitId(issueId, commit.getId())) {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Commit is already linked to this issue");
                 }
                 issueCommitRepository.save(new IssueDevelopmentCommit(issueId, commit.getId(), "MANUAL", requestingUserId));
             }
             case "PULL_REQUEST", "PR" -> {
                 PullRequest pr = resolvePullRequest(request, connectedRepoIds);
-                if (issuePullRequestRepository.existsByIdIssueIdAndIdPullRequestId(issueId, pr.getId())) {
+                if (issuePullRequestRepository.existsByIssueIdAndPullRequestId(issueId, pr.getId())) {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Pull Request is already linked to this issue");
                 }
                 issuePullRequestRepository.save(new IssuePullRequest(issueId, pr.getId(), "MANUAL", requestingUserId));
@@ -300,14 +300,14 @@ public class IssueTraceabilityService {
         projectService.assertUserCanContribute(projectId, requestingUserId);
 
         boolean removed = false;
-        if (issueBranchRepository.existsByIdIssueIdAndIdBranchId(issueId, targetId)) {
-            issueBranchRepository.deleteByIdIssueIdAndIdBranchId(issueId, targetId);
+        if (issueBranchRepository.existsByIssueIdAndBranchId(issueId, targetId)) {
+            issueBranchRepository.deleteByIssueIdAndBranchId(issueId, targetId);
             removed = true;
-        } else if (issueCommitRepository.existsByIdIssueIdAndIdCommitId(issueId, targetId)) {
-            issueCommitRepository.deleteByIdIssueIdAndIdCommitId(issueId, targetId);
+        } else if (issueCommitRepository.existsByIssueIdAndCommitId(issueId, targetId)) {
+            issueCommitRepository.deleteByIssueIdAndCommitId(issueId, targetId);
             removed = true;
-        } else if (issuePullRequestRepository.existsByIdIssueIdAndIdPullRequestId(issueId, targetId)) {
-            issuePullRequestRepository.deleteByIdIssueIdAndIdPullRequestId(issueId, targetId);
+        } else if (issuePullRequestRepository.existsByIssueIdAndPullRequestId(issueId, targetId)) {
+            issuePullRequestRepository.deleteByIssueIdAndPullRequestId(issueId, targetId);
             removed = true;
         }
 
@@ -337,22 +337,22 @@ public class IssueTraceabilityService {
         String type = linkType.toUpperCase();
         switch (type) {
             case "BRANCH", "BRANCHES" -> {
-                if (!issueBranchRepository.existsByIdIssueIdAndIdBranchId(issueId, targetId)) {
+                if (!issueBranchRepository.existsByIssueIdAndBranchId(issueId, targetId)) {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Branch link not found");
                 }
-                issueBranchRepository.deleteByIdIssueIdAndIdBranchId(issueId, targetId);
+                issueBranchRepository.deleteByIssueIdAndBranchId(issueId, targetId);
             }
             case "COMMIT", "COMMITS" -> {
-                if (!issueCommitRepository.existsByIdIssueIdAndIdCommitId(issueId, targetId)) {
+                if (!issueCommitRepository.existsByIssueIdAndCommitId(issueId, targetId)) {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Commit link not found");
                 }
-                issueCommitRepository.deleteByIdIssueIdAndIdCommitId(issueId, targetId);
+                issueCommitRepository.deleteByIssueIdAndCommitId(issueId, targetId);
             }
             case "PULL_REQUEST", "PULL_REQUESTS", "PRS" -> {
-                if (!issuePullRequestRepository.existsByIdIssueIdAndIdPullRequestId(issueId, targetId)) {
+                if (!issuePullRequestRepository.existsByIssueIdAndPullRequestId(issueId, targetId)) {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pull request link not found");
                 }
-                issuePullRequestRepository.deleteByIdIssueIdAndIdPullRequestId(issueId, targetId);
+                issuePullRequestRepository.deleteByIssueIdAndPullRequestId(issueId, targetId);
             }
             default -> unlinkArtifactFromIssue(issueId, targetId, requestingUserId);
         }
@@ -474,14 +474,14 @@ public class IssueTraceabilityService {
 
         return switch (type) {
             case "COMMIT" -> {
-                Set<UUID> linkedCommitIds = issueCommitRepository.findAllByIdIssueId(issueId).stream()
+                Set<UUID> linkedCommitIds = issueCommitRepository.findAllByIssueId(issueId).stream()
                         .map(IssueDevelopmentCommit::getCommitId)
                         .collect(Collectors.toSet());
 
                 yield commitRepository.findAllByRepositoryIdInOrderByCommittedAtDesc(repoIds, PageRequest.of(0, 50))
                         .stream()
                         .filter(c -> !linkedCommitIds.contains(c.getId()))
-                        .filter(c -> q.isEmpty() || c.getCommitSha().contains(q) || c.getMessage().toLowerCase().contains(q.toLowerCase()))
+                        .filter(c -> q.isEmpty() || c.getCommitSha().toLowerCase().contains(q.toLowerCase()) || c.getMessage().toLowerCase().contains(q.toLowerCase()))
                         .map(c -> new DevelopmentCandidateResponse(
                                 c.getId(), "COMMIT", c.getCommitSha().substring(0, Math.min(8, c.getCommitSha().length())),
                                 c.getMessage(), c.getAuthorName(), c.getCommitUrl(), c.getCommittedAt(),
@@ -491,7 +491,7 @@ public class IssueTraceabilityService {
                         .toList();
             }
             case "PULL_REQUEST", "PR" -> {
-                Set<UUID> linkedPrIds = issuePullRequestRepository.findAllByIdIssueId(issueId).stream()
+                Set<UUID> linkedPrIds = issuePullRequestRepository.findAllByIssueId(issueId).stream()
                         .map(IssuePullRequest::getPullRequestId)
                         .collect(Collectors.toSet());
 
@@ -508,7 +508,7 @@ public class IssueTraceabilityService {
                         .toList();
             }
             case "BRANCH" -> {
-                Set<UUID> linkedBranchIds = issueBranchRepository.findAllByIdIssueId(issueId).stream()
+                Set<UUID> linkedBranchIds = issueBranchRepository.findAllByIssueId(issueId).stream()
                         .map(IssueDevelopmentBranch::getBranchId)
                         .collect(Collectors.toSet());
 
@@ -545,7 +545,7 @@ public class IssueTraceabilityService {
                 if (projectKey.equalsIgnoreCase(key.projectKey())) {
                     issueService.findIssueIdByProjectAndNumber(projectId, key.issueNumber())
                             .ifPresent(matchedIssueId -> {
-                                if (!issueBranchRepository.existsByIdIssueIdAndIdBranchId(matchedIssueId, branch.getId())) {
+                                if (!issueBranchRepository.existsByIssueIdAndBranchId(matchedIssueId, branch.getId())) {
                                     issueBranchRepository.save(new IssueDevelopmentBranch(matchedIssueId, branch.getId(), "AUTO_EXTRACTED", null));
                                     log.info("Auto-linked branch '{}' to issue '{}'", branch.getName(), key.formattedKey());
                                 }
@@ -567,7 +567,7 @@ public class IssueTraceabilityService {
                 if (projectKey.equalsIgnoreCase(key.projectKey())) {
                     issueService.findIssueIdByProjectAndNumber(projectId, key.issueNumber())
                             .ifPresent(matchedIssueId -> {
-                                if (!issueCommitRepository.existsByIdIssueIdAndIdCommitId(matchedIssueId, commit.getId())) {
+                                if (!issueCommitRepository.existsByIssueIdAndCommitId(matchedIssueId, commit.getId())) {
                                     issueCommitRepository.save(new IssueDevelopmentCommit(matchedIssueId, commit.getId(), "AUTO_EXTRACTED", null));
                                     log.info("Auto-linked commit '{}' to issue '{}'", commit.getCommitSha(), key.formattedKey());
                                 }
@@ -589,7 +589,7 @@ public class IssueTraceabilityService {
                 if (projectKey.equalsIgnoreCase(key.projectKey())) {
                     issueService.findIssueIdByProjectAndNumber(projectId, key.issueNumber())
                             .ifPresent(matchedIssueId -> {
-                                if (!issuePullRequestRepository.existsByIdIssueIdAndIdPullRequestId(matchedIssueId, pr.getId())) {
+                                if (!issuePullRequestRepository.existsByIssueIdAndPullRequestId(matchedIssueId, pr.getId())) {
                                     issuePullRequestRepository.save(new IssuePullRequest(matchedIssueId, pr.getId(), "AUTO_EXTRACTED", null));
                                     log.info("Auto-linked PR '#{}' to issue '{}'", pr.getPrNumber(), key.formattedKey());
                                 }

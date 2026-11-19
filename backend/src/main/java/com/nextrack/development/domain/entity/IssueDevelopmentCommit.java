@@ -1,13 +1,15 @@
 package com.nextrack.development.domain.entity;
 
 import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
+
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "issue_development_commits")
 @IdClass(IssueDevelopmentCommitId.class)
-public class IssueDevelopmentCommit {
+public class IssueDevelopmentCommit implements Persistable<IssueDevelopmentCommitId> {
 
     @Id
     @Column(name = "issue_id", nullable = false)
@@ -26,7 +28,12 @@ public class IssueDevelopmentCommit {
     @Column(name = "linked_at", nullable = false)
     private Instant linkedAt = Instant.now();
 
-    protected IssueDevelopmentCommit() {}
+    @Transient
+    private boolean isNew = true;
+
+    protected IssueDevelopmentCommit() {
+        this.isNew = false;
+    }
 
     public IssueDevelopmentCommit(UUID issueId, UUID commitId, String linkType, UUID linkedBy) {
         this.issueId = issueId;
@@ -34,6 +41,23 @@ public class IssueDevelopmentCommit {
         this.linkType = linkType != null ? linkType : "AUTO_EXTRACTED";
         this.linkedBy = linkedBy;
         this.linkedAt = Instant.now();
+        this.isNew = true;
+    }
+
+    @Override
+    public IssueDevelopmentCommitId getId() {
+        return new IssueDevelopmentCommitId(issueId, commitId);
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @PostPersist
+    @PostLoad
+    void markNotNew() {
+        this.isNew = false;
     }
 
     public UUID getIssueId() { return issueId; }
